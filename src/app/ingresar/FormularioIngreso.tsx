@@ -28,7 +28,12 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
       });
       setMensaje(
         error
-          ? { tipo: "error", texto: "No se pudo enviar el correo. Intenta de nuevo en un minuto." }
+          ? {
+              tipo: "error",
+              texto: /rate limit|seconds/i.test(error.message)
+                ? "Se alcanzó el límite de correos por hora. Espera un rato antes de volver a intentarlo."
+                : "No se pudo enviar el correo: " + error.message,
+            }
           : { tipo: "ok", texto: "Si el correo está registrado, te llegará un enlace para crear una nueva contraseña. Ábrelo en este mismo navegador." },
       );
     } else if (modo === "ingresar") {
