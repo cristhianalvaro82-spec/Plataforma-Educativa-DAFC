@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+  <!-- Marcas de agua: figuras profesionales de la U.E. Dr. Andrés F. Córdova -->
+  <g fill="none" stroke="#011681" stroke-opacity="0.07" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Niño jugando con pelota -->
+    <g transform="translate(40 40) rotate(-8)">
+      <circle cx="30" cy="12" r="10"/>
+      <path d="M30 22 L28 52 M28 52 L14 78 M28 52 L46 70 L60 66 M29 32 L10 42 M29 32 L50 26"/>
+      <circle cx="74" cy="70" r="10"/>
+      <path d="M68 64 L80 76 M80 64 L68 76"/>
+    </g>
+    <!-- Libro abierto -->
+    <g transform="translate(300 50) rotate(6)">
+      <path d="M0 10 Q35 0 60 14 L60 74 Q35 60 0 70 Z"/>
+      <path d="M120 10 Q85 0 60 14 L60 74 Q85 60 120 70 Z"/>
+      <path d="M12 24 L46 22 M12 36 L46 34 M12 48 L46 46 M74 22 L108 24 M74 34 L108 36 M74 46 L108 48"/>
+    </g>
+    <!-- Soldadura: soplete y chispas -->
+    <g transform="translate(60 210) rotate(-4)">
+      <path d="M0 70 L50 30 M50 30 L60 22 L68 30 L58 38 Z"/>
+      <path d="M8 76 L0 70 L-4 62"/>
+      <path d="M72 18 L84 8 M76 30 L92 28 M68 12 L70 -2 M82 40 L94 48"/>
+      <path d="M40 84 L110 84 M50 84 L50 96 M100 84 L100 96"/>
+    </g>
+    <!-- Electromecánica automotriz: auto y engranaje -->
+    <g transform="translate(270 220) rotate(4)">
+      <path d="M4 60 L4 44 L22 42 L40 22 L92 22 L110 42 L130 46 L130 60 Z"/>
+      <circle cx="32" cy="62" r="11"/><circle cx="102" cy="62" r="11"/>
+      <path d="M46 26 L46 42 M76 26 L76 42"/>
+      <g transform="translate(160 18)">
+        <circle cx="0" cy="0" r="10"/>
+        <path d="M0 -18 L0 -12 M0 12 L0 18 M-18 0 L-12 0 M12 0 L18 0 M-13 -13 L-9 -9 M9 9 L13 13 M-13 13 L-9 9 M9 -9 L13 -13"/>
+      </g>
+    </g>
+    <!-- Gestión administrativa: maletín y gráfico -->
+    <g transform="translate(50 380) rotate(5)">
+      <rect x="0" y="20" width="80" height="56" rx="6"/>
+      <path d="M28 20 L28 10 L52 10 L52 20 M0 42 L80 42"/>
+      <path d="M110 76 L110 50 M130 76 L130 34 M150 76 L150 20 M100 80 L162 80"/>
+    </g>
+    <!-- Ciencias: matraz y átomo -->
+    <g transform="translate(320 370) rotate(-6)">
+      <path d="M20 0 L20 30 L0 76 L56 76 L36 30 L36 0 M14 0 L42 0 M8 58 L48 58"/>
+      <g transform="translate(120 40)">
+        <ellipse cx="0" cy="0" rx="36" ry="12"/>
+        <ellipse cx="0" cy="0" rx="36" ry="12" transform="rotate(60)"/>
+        <ellipse cx="0" cy="0" rx="36" ry="12" transform="rotate(-60)"/>
+        <circle cx="0" cy="0" r="4"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -7,12 +7,12 @@ export default function Encabezado() {
     <header className="bg-marca text-white">
       <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-2.5">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-12 items-center justify-center rounded-md bg-white px-1.5 py-1">
+          <span className="flex h-16 items-center justify-center rounded-lg bg-white px-1.5 py-1 shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/escudo-ue.png" alt="Escudo de la institución" className="h-full w-auto" />
+            <img src="/logo-ue-chico.png" alt="Logo de la institución" className="h-full w-auto object-contain" />
           </span>
           <span className="leading-tight">
-            <span className="block font-semibold">{NOMBRE_SITIO}</span>
+            <span className="block text-lg font-semibold">{NOMBRE_SITIO}</span>
             <span className="block text-xs text-marca-100">{SUBTITULO_SITIO}</span>
           </span>
         </Link>

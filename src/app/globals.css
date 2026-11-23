@@ -16,6 +16,9 @@
 }
 
 body {
-  background: #f8fafc;
+  background-color: #f8fafc;
+  background-image: url("/marcas-agua.svg");
+  background-size: 520px 520px;
+  background-attachment: fixed;
   color: #0f172a;
 }
