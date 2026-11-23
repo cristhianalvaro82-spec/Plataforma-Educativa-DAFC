@@ -102,11 +102,12 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
         </button>
       </form>
 
-      <div className="mt-4 flex items-center justify-between text-sm">
+      <div className="mt-4 flex items-center justify-center gap-2 text-sm">
         {modo === "ingresar" ? (
           <>
             <button onClick={() => { setModo("registro"); setMensaje(null); }} className="text-marca hover:underline">Crear cuenta</button>
-            <button onClick={() => { setModo("recuperar"); setMensaje(null); }} className="text-slate-500 hover:text-marca hover:underline">¿Olvidaste tu contraseña?</button>
+            <span className="text-slate-300">·</span>
+            <button onClick={() => { setModo("recuperar"); setMensaje(null); }} className="text-marca hover:underline">¿Olvidaste tu contraseña?</button>
           </>
         ) : (
           <button onClick={() => { setModo("ingresar"); setMensaje(null); }} className="text-marca hover:underline">← Volver a ingresar</button>
