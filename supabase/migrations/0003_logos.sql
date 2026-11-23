@@ -21,3 +21,7 @@ create policy logos_actualizar on storage.objects for update to authenticated
 create policy logos_borrar on storage.objects for delete to authenticated
   using (bucket_id = 'logos'
     and public.tiene_rol(((storage.foldername(name))[1])::uuid, array['administrador']::public.rol_usuario[]));
+
+-- Paleta institucional por defecto (azul del logo de la U.E. Dr. Andrés F. Córdova)
+alter table public.instituciones alter column color_primario set default '#011681';
+update public.instituciones set color_primario = '#011681' where color_primario = '#1F4E79';

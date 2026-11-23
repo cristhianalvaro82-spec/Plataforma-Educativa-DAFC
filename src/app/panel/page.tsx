@@ -65,7 +65,7 @@ export default async function PanelPage() {
             <input name="nombre" required placeholder="Nombre de la unidad educativa"
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
             <input name="amie" placeholder="Código AMIE" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Registrar</button>
+            <button className="rounded-lg bg-marca px-4 py-2 text-sm font-medium text-white hover:bg-marca-oscuro">Registrar</button>
           </form>
         </section>
       ) : (
@@ -76,13 +76,13 @@ export default async function PanelPage() {
               {i.amie && <p className="text-sm text-slate-600">AMIE {i.amie}</p>}
               <div className="mt-3 flex flex-wrap gap-2">
                 {i.roles.map((r) => (
-                  <span key={r} className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-800">{NOMBRE_ROL[r] ?? r}</span>
+                  <span key={r} className="rounded-full bg-marca-50 px-2.5 py-0.5 text-xs font-medium text-marca">{NOMBRE_ROL[r] ?? r}</span>
                 ))}
               </div>
               <h3 className="mt-5 text-sm font-semibold text-slate-800">Pasos para empezar</h3>
               <ol className="mt-2 grid gap-2 text-sm">
                 <li>
-                  <Link href="/panel/institucion" className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-blue-800 hover:bg-blue-100">
+                  <Link href="/panel/institucion" className="flex items-center justify-between rounded-lg border border-marca-200 bg-marca-50 px-3 py-2 text-marca hover:bg-marca-100">
                     <span>1. Completar datos, logo y autoridades de la institución</span><span>→</span>
                   </Link>
                 </li>

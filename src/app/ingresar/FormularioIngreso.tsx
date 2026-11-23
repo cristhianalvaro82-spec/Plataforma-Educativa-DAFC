@@ -6,7 +6,7 @@ import { clienteNavegador } from "@/lib/supabase/client";
 import { NOMBRE_SITIO, SUBTITULO_SITIO } from "@/lib/sitio";
 import { marcarRecordar } from "@/lib/recordar";
 
-const campo = "w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+const campo = "w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-marca";
 
 export default function FormularioIngreso({ url, clave }: { url: string; clave: string }) {
   const router = useRouter();
@@ -51,7 +51,9 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
 
   return (
     <main className="mx-auto max-w-md px-4 py-12">
-      <h1 className="text-2xl font-bold text-slate-900">{NOMBRE_SITIO}</h1>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo-ue.png" alt="Logo de la institución" className="mb-3 h-28 w-auto" />
+      <h1 className="text-2xl font-bold text-marca">{NOMBRE_SITIO}</h1>
       <p className="text-sm font-medium text-slate-500">{SUBTITULO_SITIO}</p>
       <p className="mt-4 text-slate-600">{modo === "ingresar" ? "Ingresa con tu cuenta" : "Crea tu cuenta docente"}</p>
 
@@ -75,14 +77,14 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
             {mensaje.texto}
           </p>
         )}
-        <button disabled={cargando} className="rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+        <button disabled={cargando} className="rounded-lg bg-marca px-4 py-2.5 font-medium text-white hover:bg-marca-oscuro disabled:opacity-60">
           {cargando ? "Un momento…" : modo === "ingresar" ? "Ingresar" : "Crear cuenta"}
         </button>
       </form>
 
       <button
         onClick={() => { setModo(modo === "ingresar" ? "registro" : "ingresar"); setMensaje(null); }}
-        className="mt-4 text-sm text-blue-700 hover:underline"
+        className="mt-4 text-sm text-marca hover:underline"
       >
         {modo === "ingresar" ? "¿No tienes cuenta? Crear cuenta" : "¿Ya tienes cuenta? Ingresar"}
       </button>

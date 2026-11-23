@@ -5,7 +5,7 @@ import Link from "next/link";
 import { clienteNavegador } from "@/lib/supabase/client";
 import type { Autoridad, Institucion } from "@/lib/datos/institucion";
 
-const campo = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50";
+const campo = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-marca disabled:bg-slate-50";
 const CARGOS = ["Rector/a", "Vicerrector/a", "Inspector/a General"];
 
 export default function FormularioInstitucion(props: {
@@ -19,7 +19,7 @@ export default function FormularioInstitucion(props: {
     }),
   );
   const [logo, setLogo] = useState<File | null>(null);
-  const [vistaLogo, setVistaLogo] = useState(props.logoUrl);
+  const [vistaLogo, setVistaLogo] = useState(props.logoUrl ?? "/logo-ue.png");
   const [estado, setEstado] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
   const [guardando, setGuardando] = useState(false);
 
@@ -100,7 +100,7 @@ export default function FormularioInstitucion(props: {
           </label>
           <label className="flex items-center gap-3 text-sm text-slate-700">
             Color
-            <input disabled={d} type="color" value={v("color_primario") || "#1F4E79"} onChange={set("color_primario")} />
+            <input disabled={d} type="color" value={v("color_primario") || "#011681"} onChange={set("color_primario")} />
           </label>
         </div>
       </section>
@@ -126,7 +126,7 @@ export default function FormularioInstitucion(props: {
       )}
       <div className="flex flex-wrap gap-3">
         {props.editable && (
-          <button disabled={guardando} className="rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+          <button disabled={guardando} className="rounded-lg bg-marca px-5 py-2.5 font-medium text-white hover:bg-marca-oscuro disabled:opacity-60">
             {guardando ? "Guardando…" : "Guardar"}
           </button>
         )}

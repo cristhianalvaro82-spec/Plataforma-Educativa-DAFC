@@ -44,7 +44,7 @@ create table instituciones (
   logo_ministerio boolean not null default true, -- mostrar franja MinEduc en encabezado
   encabezado_extra text,                         -- línea adicional opcional
   pie_pagina      text,                          -- dirección/teléfono al pie
-  color_primario  text default '#1F4E79',
+  color_primario  text default '#011681',
   creado_en       timestamptz not null default now()
 );
 

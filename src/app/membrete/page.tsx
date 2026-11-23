@@ -24,7 +24,7 @@ export default async function MembretePage() {
           telefono: i.telefono ?? "",
           correo: i.correo ?? "",
           lema: i.lema ?? "",
-          colorPrimario: i.color_primario ?? "#1F4E79",
+          colorPrimario: i.color_primario ?? "#011681",
         },
         logoUrl: urlLogo(url, i.logo_path),
         firmante: insp ? { nombre: insp.nombre, titulo: insp.titulo ?? "", cargo: "Inspector General" } : undefined,

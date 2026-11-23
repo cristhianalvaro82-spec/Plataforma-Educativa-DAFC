@@ -23,7 +23,7 @@ export type DatosInstitucion = {
   lema?: string;
   anioLectivo?: string;
   colorPrimario?: string; // "#1F4E79"
-  logo?: { datos: ArrayBuffer | Uint8Array; tipo: "png" | "jpg" };
+  logo?: { datos: ArrayBuffer | Uint8Array; tipo: "png" | "jpg"; proporcion?: number }; // proporcion = ancho / alto
 };
 
 export type Firmante = { nombre: string; cargo: string; titulo?: string };
@@ -35,7 +35,7 @@ const SIN_BORDE = {
   right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
 };
 
-const color = (inst: DatosInstitucion) => (inst.colorPrimario ?? "#1F4E79").replace("#", "");
+const color = (inst: DatosInstitucion) => (inst.colorPrimario ?? "#011681").replace("#", "");
 
 /** Encabezado: logo a la izquierda, datos de la institución al centro. */
 export function crearEncabezado(inst: DatosInstitucion): Header {
@@ -61,7 +61,7 @@ export function crearEncabezado(inst: DatosInstitucion): Header {
       new Paragraph({
         alignment: AlignmentType.CENTER,
         children: inst.logo
-          ? [new ImageRun({ type: inst.logo.tipo, data: inst.logo.datos, transformation: { width: 70, height: 70 } })]
+          ? [new ImageRun({ type: inst.logo.tipo, data: inst.logo.datos, transformation: { width: Math.round(75 * (inst.logo.proporcion ?? 1)), height: 75 } })]
           : [],
       }),
     ],

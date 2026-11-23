@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
+/* Paleta institucional · U.E. Dr. Andrés F. Córdova (tomada del logo oficial) */
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-marca: #011681;        /* azul de las letras del logo */
+  --color-marca-oscuro: #1E3067; /* azul del borde del escudo */
+  --color-marca-50: #EEF1FA;
+  --color-marca-100: #DCE2F5;
+  --color-marca-200: #B9C4EA;
+  --color-rojo: #E10108;         /* rojo del escudo */
+  --color-rojo-50: #FDECEC;
+  --color-dorado: #CCB325;       /* laureles */
 }
 
 body {

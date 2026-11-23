@@ -16,7 +16,7 @@ export default async function InstitucionPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <Link href="/panel" className="text-sm text-blue-700 hover:underline">← Volver al panel</Link>
+      <Link href="/panel" className="text-sm text-marca hover:underline">← Volver al panel</Link>
       <h1 className="mt-2 text-2xl font-bold text-slate-900">Mi institución y membrete</h1>
       <p className="mt-1 text-slate-600">
         Estos datos aparecen en el encabezado y el pie de todos los documentos Word que genera la plataforma.

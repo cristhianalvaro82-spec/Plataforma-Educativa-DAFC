@@ -4,7 +4,16 @@ import { useEffect, useState } from "react";
 import { Packer } from "docx";
 import { crearOficio, type DatosInstitucion } from "@/lib/word/membrete";
 
-const campo = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+async function proporcionDe(datos: ArrayBuffer): Promise<number> {
+  try {
+    const bmp = await createImageBitmap(new Blob([datos]));
+    return bmp.width / bmp.height;
+  } catch {
+    return 1;
+  }
+}
+
+const campo = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-marca";
 
 export type Inicial = { inst?: Partial<DatosInstitucion>; logoUrl?: string | null; firmante?: { nombre: string; titulo: string; cargo: string } };
 
@@ -21,15 +30,18 @@ export default function FormularioMembrete({ inicial }: { inicial?: Inicial }) {
     correo: "",
     lema: "",
     anioLectivo: "2026-2027",
-    colorPrimario: "#1F4E79",
+    colorPrimario: "#011681",
     ...inicial?.inst,
   });
   useEffect(() => {
-    if (!inicial?.logoUrl) return;
-    fetch(inicial.logoUrl)
+    // Logo guardado de la institución o, si no hay, el logo oficial incluido en la plataforma.
+    const origen = inicial?.logoUrl || "/logo-ue.png";
+    fetch(origen)
       .then((r) => (r.ok ? r.arrayBuffer() : null))
-      .then((datos) => {
-        if (datos) setInst((i) => ({ ...i, logo: { datos, tipo: inicial.logoUrl!.endsWith(".png") ? "png" : "jpg" } }));
+      .then(async (datos) => {
+        if (!datos) return;
+        const proporcion = await proporcionDe(datos);
+        setInst((i) => (i.logo ? i : { ...i, logo: { datos, tipo: origen.endsWith(".jpg") ? "jpg" : "png", proporcion } }));
       })
       .catch(() => {});
   }, [inicial?.logoUrl]);
@@ -57,7 +69,8 @@ export default function FormularioMembrete({ inicial }: { inicial?: Inicial }) {
     const archivo = e.target.files?.[0];
     if (!archivo) return;
     const tipo = archivo.type === "image/png" ? "png" : "jpg";
-    setInst({ ...inst, logo: { datos: await archivo.arrayBuffer(), tipo: tipo as "png" | "jpg" } });
+    const datos = await archivo.arrayBuffer();
+    setInst({ ...inst, logo: { datos, tipo: tipo as "png" | "jpg", proporcion: await proporcionDe(datos) } });
   }
 
   async function descargar() {
@@ -143,7 +156,7 @@ export default function FormularioMembrete({ inicial }: { inicial?: Inicial }) {
             <button
               onClick={descargar}
               disabled={generando}
-              className="mt-2 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              className="mt-2 rounded-lg bg-marca px-4 py-2.5 font-medium text-white hover:bg-marca-oscuro disabled:opacity-60"
             >
               {generando ? "Generando…" : "Descargar Word"}
             </button>

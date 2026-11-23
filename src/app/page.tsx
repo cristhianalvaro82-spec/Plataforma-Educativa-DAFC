@@ -13,10 +13,10 @@ const modulos = [
 export default function Home() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-3xl font-bold text-slate-900">{NOMBRE_SITIO}</h1>
+      <h1 className="text-3xl font-bold text-marca">{NOMBRE_SITIO}</h1>
       <p className="text-lg text-slate-500">{SUBTITULO_SITIO}</p>
       <div className="mt-4 flex gap-3">
-        <Link href="/ingresar" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Ingresar</Link>
+        <Link href="/ingresar" className="rounded-lg bg-marca px-4 py-2 text-sm font-medium text-white hover:bg-marca-oscuro">Ingresar</Link>
         <Link href="/panel" className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-100">Mi panel</Link>
       </div>
       <p className="mt-4 max-w-2xl text-slate-600">
@@ -27,7 +27,7 @@ export default function Home() {
         {modulos.map((m) => {
           const tarjeta = (
             <div className="h-full rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
-              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${m.href ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-600"}`}>
+              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${m.href ? "bg-marca-50 text-marca" : "bg-slate-100 text-slate-600"}`}>
                 {m.estado}
               </span>
               <h2 className="mt-3 font-semibold text-slate-900">{m.nombre}</h2>
