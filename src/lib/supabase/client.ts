@@ -1,6 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
-import { SUPABASE_KEY, SUPABASE_URL } from "./config";
 
-export function clienteNavegador() {
-  return createBrowserClient(SUPABASE_URL, SUPABASE_KEY);
+export function clienteNavegador(url: string, key: string) {
+  return createBrowserClient(url, key);
 }

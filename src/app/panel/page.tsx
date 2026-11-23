@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { clienteServidor } from "@/lib/supabase/server";
-import { supabaseConfigurado } from "@/lib/supabase/config";
+import { leerConfigSupabase } from "@/lib/supabase/config";
 import { crearInstitucion } from "./acciones";
 
 const NOMBRE_ROL: Record<string, string> = {
@@ -17,7 +17,7 @@ const NOMBRE_ROL: Record<string, string> = {
 export const dynamic = "force-dynamic";
 
 export default async function PanelPage() {
-  if (!supabaseConfigurado) redirect("/ingresar");
+  if (!leerConfigSupabase().configurado) redirect("/ingresar");
   const supabase = await clienteServidor();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/ingresar");

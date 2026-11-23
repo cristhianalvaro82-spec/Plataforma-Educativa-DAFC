@@ -1,10 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { SUPABASE_KEY, SUPABASE_URL } from "./config";
+import { leerConfigSupabase } from "./config";
 
 export async function clienteServidor() {
+  const { url, key } = leerConfigSupabase();
   const almacen = await cookies();
-  return createServerClient(SUPABASE_URL, SUPABASE_KEY, {
+  return createServerClient(url, key, {
     cookies: {
       getAll: () => almacen.getAll(),
       setAll: (lista) => {

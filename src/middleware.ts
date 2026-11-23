@@ -1,13 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { SUPABASE_KEY, SUPABASE_URL, supabaseConfigurado } from "@/lib/supabase/config";
+import { leerConfigSupabase } from "@/lib/supabase/config";
 
 /** Renueva la sesión en cada visita y protege las rutas privadas. */
 export async function middleware(request: NextRequest) {
   let respuesta = NextResponse.next({ request });
-  if (!supabaseConfigurado) return respuesta;
+  const { url, key, configurado } = leerConfigSupabase();
+  if (!configurado) return respuesta;
 
-  const supabase = createServerClient(SUPABASE_URL, SUPABASE_KEY, {
+  const supabase = createServerClient(url, key, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (lista) => {
