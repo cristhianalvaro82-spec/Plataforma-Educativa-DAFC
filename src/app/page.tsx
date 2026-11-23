@@ -13,7 +13,11 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="text-3xl font-bold text-slate-900">Plataforma Educativa</h1>
-      <p className="mt-2 max-w-2xl text-slate-600">
+      <div className="mt-4 flex gap-3">
+        <Link href="/ingresar" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Ingresar</Link>
+        <Link href="/panel" className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-100">Mi panel</Link>
+      </div>
+      <p className="mt-4 max-w-2xl text-slate-600">
         Todo el trabajo docente e institucional en un solo lugar: planificar, evaluar, calificar, tomar asistencia y generar
         documentos con el membrete de tu unidad educativa.
       </p>

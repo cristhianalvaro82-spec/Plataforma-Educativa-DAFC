@@ -1,0 +1,88 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { clienteNavegador } from "@/lib/supabase/client";
+import { supabaseConfigurado } from "@/lib/supabase/config";
+
+const campo = "w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+
+export default function IngresarPage() {
+  const router = useRouter();
+  const [modo, setModo] = useState<"ingresar" | "registro">("ingresar");
+  const [f, setF] = useState({ nombres: "", apellidos: "", correo: "", clave: "" });
+  const [mensaje, setMensaje] = useState<{ tipo: "error" | "ok"; texto: string } | null>(null);
+  const [cargando, setCargando] = useState(false);
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
+
+  if (!supabaseConfigurado) {
+    return (
+      <main className="mx-auto max-w-md px-4 py-16 text-center">
+        <h1 className="text-xl font-semibold">Inicio de sesión en configuración</h1>
+        <p className="mt-2 text-slate-600">Falta conectar la base de datos (Supabase) en Vercel.</p>
+      </main>
+    );
+  }
+
+  async function enviar(e: React.FormEvent) {
+    e.preventDefault();
+    setCargando(true);
+    setMensaje(null);
+    const supabase = clienteNavegador();
+    if (modo === "ingresar") {
+      const { error } = await supabase.auth.signInWithPassword({ email: f.correo, password: f.clave });
+      if (error) setMensaje({ tipo: "error", texto: "Correo o contraseña incorrectos." });
+      else router.push("/panel");
+    } else {
+      if (f.clave.length < 8) {
+        setMensaje({ tipo: "error", texto: "La contraseña debe tener al menos 8 caracteres." });
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email: f.correo,
+          password: f.clave,
+          options: {
+            data: { nombres: f.nombres, apellidos: f.apellidos },
+            emailRedirectTo: `${window.location.origin}/panel`,
+          },
+        });
+        if (error) setMensaje({ tipo: "error", texto: error.message });
+        else if (data.session) router.push("/panel");
+        else setMensaje({ tipo: "ok", texto: "Te enviamos un correo para confirmar tu cuenta. Ábrelo y luego ingresa." });
+      }
+    }
+    setCargando(false);
+  }
+
+  return (
+    <main className="mx-auto max-w-md px-4 py-12">
+      <h1 className="text-2xl font-bold text-slate-900">Plataforma Educativa</h1>
+      <p className="mt-1 text-slate-600">{modo === "ingresar" ? "Ingresa con tu cuenta" : "Crea tu cuenta docente"}</p>
+
+      <form onSubmit={enviar} className="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        {modo === "registro" && (
+          <div className="grid grid-cols-2 gap-3">
+            <input required className={campo} placeholder="Nombres" value={f.nombres} onChange={set("nombres")} />
+            <input required className={campo} placeholder="Apellidos" value={f.apellidos} onChange={set("apellidos")} />
+          </div>
+        )}
+        <input required type="email" className={campo} placeholder="Correo" value={f.correo} onChange={set("correo")} />
+        <input required type="password" className={campo} placeholder="Contraseña" value={f.clave} onChange={set("clave")} />
+        {mensaje && (
+          <p className={`rounded-lg px-3 py-2 text-sm ${mensaje.tipo === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-800"}`}>
+            {mensaje.texto}
+          </p>
+        )}
+        <button disabled={cargando} className="rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+          {cargando ? "Un momento…" : modo === "ingresar" ? "Ingresar" : "Crear cuenta"}
+        </button>
+      </form>
+
+      <button
+        onClick={() => { setModo(modo === "ingresar" ? "registro" : "ingresar"); setMensaje(null); }}
+        className="mt-4 text-sm text-blue-700 hover:underline"
+      >
+        {modo === "ingresar" ? "¿No tienes cuenta? Crear cuenta" : "¿Ya tienes cuenta? Ingresar"}
+      </button>
+    </main>
+  );
+}
