@@ -17,8 +17,13 @@
 
 body {
   background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Marcas de agua (desactivadas por ahora). Para activarlas, agregar la clase
+   "marcas-agua" al <body> en src/app/layout.tsx. */
+body.marcas-agua {
   background-image: url("/marcas-agua.svg");
   background-size: 520px 520px;
   background-attachment: fixed;
-  color: #0f172a;
 }

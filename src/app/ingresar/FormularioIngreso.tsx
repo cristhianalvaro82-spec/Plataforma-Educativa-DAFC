@@ -68,8 +68,11 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/docentes.png" alt="Docentes de la institución" className="hidden h-[520px] w-auto justify-self-center drop-shadow-xl lg:block" />
       <div className="mx-auto w-full max-w-md">
+        {/* En celular: los docentes, más pequeños, encima del formulario */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/docentes.png" alt="" aria-hidden="true" className="mx-auto mb-2 h-56 w-auto drop-shadow-lg lg:hidden" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo-ue.png" alt="Logo de la institución" className="mb-3 h-36 w-auto drop-shadow-sm" />
+      <img src="/logo-ue.png" alt="Logo de la institución" className="mb-3 h-24 w-auto drop-shadow-sm lg:h-36" />
       <h1 className="text-2xl font-bold text-marca">{NOMBRE_SITIO}</h1>
       <p className="text-sm font-medium text-slate-500">{SUBTITULO_SITIO}</p>
       <p className="mt-4 text-slate-600">{modo === "ingresar" ? "Ingresa con tu cuenta" : modo === "registro" ? "Crea tu cuenta docente" : "Recupera tu contraseña"}</p>
