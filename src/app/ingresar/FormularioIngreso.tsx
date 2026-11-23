@@ -10,7 +10,7 @@ const campo = "w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm foc
 
 export default function FormularioIngreso({ url, clave }: { url: string; clave: string }) {
   const router = useRouter();
-  const [modo, setModo] = useState<"ingresar" | "registro">("ingresar");
+  const [modo, setModo] = useState<"ingresar" | "registro" | "recuperar">("ingresar");
   const [f, setF] = useState({ nombres: "", apellidos: "", correo: "", clave: "" });
   const [mensaje, setMensaje] = useState<{ tipo: "error" | "ok"; texto: string } | null>(null);
   const [cargando, setCargando] = useState(false);
@@ -22,7 +22,16 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
     setCargando(true);
     setMensaje(null);
     const supabase = clienteNavegador(url, clave);
-    if (modo === "ingresar") {
+    if (modo === "recuperar") {
+      const { error } = await supabase.auth.resetPasswordForEmail(f.correo, {
+        redirectTo: `${window.location.origin}/nueva-clave`,
+      });
+      setMensaje(
+        error
+          ? { tipo: "error", texto: "No se pudo enviar el correo. Intenta de nuevo en un minuto." }
+          : { tipo: "ok", texto: "Si el correo está registrado, te llegará un enlace para crear una nueva contraseña. Ábrelo en este mismo navegador." },
+      );
+    } else if (modo === "ingresar") {
       const { error } = await supabase.auth.signInWithPassword({ email: f.correo, password: f.clave });
       if (error) setMensaje({ tipo: "error", texto: "Correo o contraseña incorrectos." });
       else {
@@ -55,7 +64,7 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
       <img src="/logo-ue.png" alt="Logo de la institución" className="mb-3 h-28 w-auto" />
       <h1 className="text-2xl font-bold text-marca">{NOMBRE_SITIO}</h1>
       <p className="text-sm font-medium text-slate-500">{SUBTITULO_SITIO}</p>
-      <p className="mt-4 text-slate-600">{modo === "ingresar" ? "Ingresa con tu cuenta" : "Crea tu cuenta docente"}</p>
+      <p className="mt-4 text-slate-600">{modo === "ingresar" ? "Ingresa con tu cuenta" : modo === "registro" ? "Crea tu cuenta docente" : "Recupera tu contraseña"}</p>
 
       <form onSubmit={enviar} autoComplete="on" className="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         {modo === "registro" && (
@@ -65,7 +74,7 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
           </div>
         )}
         <input required type="email" name="email" autoComplete="username" className={campo} placeholder="Correo" value={f.correo} onChange={set("correo")} />
-        <input required type="password" name="password" autoComplete={modo === "ingresar" ? "current-password" : "new-password"} className={campo} placeholder="Contraseña" value={f.clave} onChange={set("clave")} />
+        {modo !== "recuperar" && <input required type="password" name="password" autoComplete={modo === "ingresar" ? "current-password" : "new-password"} className={campo} placeholder="Contraseña" value={f.clave} onChange={set("clave")} />}
         {modo === "ingresar" && (
           <label className="flex items-center gap-2 text-sm text-slate-700">
             <input type="checkbox" checked={recordar} onChange={(e) => setRecordar(e.target.checked)} className="h-4 w-4" />
@@ -78,16 +87,23 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
           </p>
         )}
         <button disabled={cargando} className="rounded-lg bg-marca px-4 py-2.5 font-medium text-white hover:bg-marca-oscuro disabled:opacity-60">
-          {cargando ? "Un momento…" : modo === "ingresar" ? "Ingresar" : "Crear cuenta"}
+          {cargando ? "Un momento…" : modo === "ingresar" ? "Ingresar" : modo === "registro" ? "Crear cuenta" : "Enviar enlace al correo"}
         </button>
       </form>
 
-      <button
-        onClick={() => { setModo(modo === "ingresar" ? "registro" : "ingresar"); setMensaje(null); }}
-        className="mt-4 text-sm text-marca hover:underline"
-      >
-        {modo === "ingresar" ? "¿No tienes cuenta? Crear cuenta" : "¿Ya tienes cuenta? Ingresar"}
-      </button>
+      <div className="mt-4 flex flex-col items-start gap-2 text-sm">
+        {modo === "ingresar" && (
+          <button onClick={() => { setModo("recuperar"); setMensaje(null); }} className="text-marca hover:underline">
+            ¿Olvidaste tu contraseña?
+          </button>
+        )}
+        <button
+          onClick={() => { setModo(modo === "registro" ? "ingresar" : modo === "ingresar" ? "registro" : "ingresar"); setMensaje(null); }}
+          className="text-marca hover:underline"
+        >
+          {modo === "ingresar" ? "¿No tienes cuenta? Crear cuenta" : "Volver a ingresar"}
+        </button>
+      </div>
     </main>
   );
 }
