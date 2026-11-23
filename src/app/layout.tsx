@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { NOMBRE_SITIO, SUBTITULO_SITIO } from "@/lib/sitio";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Plataforma Educativa",
+  title: `${NOMBRE_SITIO} · ${SUBTITULO_SITIO}`,
   description: "Gestión docente e institucional para unidades educativas del Ecuador",
 };
 

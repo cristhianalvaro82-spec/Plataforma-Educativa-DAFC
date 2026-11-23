@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { clienteServidor } from "@/lib/supabase/server";
 import { leerConfigSupabase } from "@/lib/supabase/config";
+import ControlSesion from "./ControlSesion";
 import { crearInstitucion } from "./acciones";
 
 const NOMBRE_ROL: Record<string, string> = {
@@ -17,7 +18,8 @@ const NOMBRE_ROL: Record<string, string> = {
 export const dynamic = "force-dynamic";
 
 export default async function PanelPage() {
-  if (!leerConfigSupabase().configurado) redirect("/ingresar");
+  const cfg = leerConfigSupabase();
+  if (!cfg.configurado) redirect("/ingresar");
   const supabase = await clienteServidor();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/ingresar");
@@ -40,12 +42,13 @@ export default async function PanelPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
+      <ControlSesion url={cfg.url} clave={cfg.key} />
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
             Hola, {perfil?.nombres || user.email}
           </h1>
-          <p className="text-slate-600">Bienvenido a la Plataforma Educativa.</p>
+          <p className="text-slate-600">Bienvenido a tu plataforma docente.</p>
         </div>
         <form action="/auth/salir" method="post">
           <button className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100">Cerrar sesión</button>
@@ -76,9 +79,21 @@ export default async function PanelPage() {
                   <span key={r} className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-800">{NOMBRE_ROL[r] ?? r}</span>
                 ))}
               </div>
-              <div className="mt-4 flex gap-3 text-sm">
-                <Link href="/membrete" className="text-blue-700 hover:underline">Membrete y documentos</Link>
-              </div>
+              <h3 className="mt-5 text-sm font-semibold text-slate-800">Pasos para empezar</h3>
+              <ol className="mt-2 grid gap-2 text-sm">
+                <li>
+                  <Link href="/panel/institucion" className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-blue-800 hover:bg-blue-100">
+                    <span>1. Completar datos, logo y autoridades de la institución</span><span>→</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/membrete" className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-slate-700 hover:bg-slate-50">
+                    <span>2. Probar un oficio en Word con el membrete</span><span>→</span>
+                  </Link>
+                </li>
+                <li className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-slate-400">3. Invitar a los docentes (próximamente)</li>
+                <li className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-slate-400">4. Crear cursos, paralelos y nóminas (próximamente)</li>
+              </ol>
             </div>
           ))}
         </section>

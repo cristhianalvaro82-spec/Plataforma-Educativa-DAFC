@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { NOMBRE_SITIO, SUBTITULO_SITIO } from "@/lib/sitio";
 
 const modulos = [
-  { nombre: "Mi institución y membrete", estado: "Disponible", href: "/membrete", desc: "Datos de la unidad educativa y documentos Word con hoja membretada." },
+  { nombre: "Mi institución y membrete", estado: "Disponible", href: "/panel/institucion", desc: "Datos de la unidad educativa y documentos Word con hoja membretada." },
   { nombre: "Cursos, horarios y nóminas", estado: "Fase 1", desc: "Cursos, paralelos, asignaturas, horario del docente e importación desde Excel." },
   { nombre: "Planificaciones con IA", estado: "Fase 2", desc: "Plan anual, trimestral, semanal y plan de clase en ERCA o ACC con DUA." },
   { nombre: "Asistencia y calificaciones", estado: "Fase 3", desc: "Asistencia, atrasos, escalas oficiales, supletorio y reportes." },
@@ -12,7 +13,8 @@ const modulos = [
 export default function Home() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-3xl font-bold text-slate-900">Plataforma Educativa</h1>
+      <h1 className="text-3xl font-bold text-slate-900">{NOMBRE_SITIO}</h1>
+      <p className="text-lg text-slate-500">{SUBTITULO_SITIO}</p>
       <div className="mt-4 flex gap-3">
         <Link href="/ingresar" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Ingresar</Link>
         <Link href="/panel" className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-100">Mi panel</Link>

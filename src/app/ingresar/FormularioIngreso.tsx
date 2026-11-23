@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { clienteNavegador } from "@/lib/supabase/client";
+import { NOMBRE_SITIO, SUBTITULO_SITIO } from "@/lib/sitio";
+import { marcarRecordar } from "@/lib/recordar";
 
 const campo = "w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
@@ -12,6 +14,7 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
   const [f, setF] = useState({ nombres: "", apellidos: "", correo: "", clave: "" });
   const [mensaje, setMensaje] = useState<{ tipo: "error" | "ok"; texto: string } | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [recordar, setRecordar] = useState(true);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   async function enviar(e: React.FormEvent) {
@@ -22,7 +25,10 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
     if (modo === "ingresar") {
       const { error } = await supabase.auth.signInWithPassword({ email: f.correo, password: f.clave });
       if (error) setMensaje({ tipo: "error", texto: "Correo o contraseña incorrectos." });
-      else router.push("/panel");
+      else {
+        marcarRecordar(recordar);
+        router.push("/panel");
+      }
     } else {
       if (f.clave.length < 8) {
         setMensaje({ tipo: "error", texto: "La contraseña debe tener al menos 8 caracteres." });
@@ -45,18 +51,25 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
 
   return (
     <main className="mx-auto max-w-md px-4 py-12">
-      <h1 className="text-2xl font-bold text-slate-900">Plataforma Educativa</h1>
-      <p className="mt-1 text-slate-600">{modo === "ingresar" ? "Ingresa con tu cuenta" : "Crea tu cuenta docente"}</p>
+      <h1 className="text-2xl font-bold text-slate-900">{NOMBRE_SITIO}</h1>
+      <p className="text-sm font-medium text-slate-500">{SUBTITULO_SITIO}</p>
+      <p className="mt-4 text-slate-600">{modo === "ingresar" ? "Ingresa con tu cuenta" : "Crea tu cuenta docente"}</p>
 
-      <form onSubmit={enviar} className="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <form onSubmit={enviar} autoComplete="on" className="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         {modo === "registro" && (
           <div className="grid grid-cols-2 gap-3">
-            <input required className={campo} placeholder="Nombres" value={f.nombres} onChange={set("nombres")} />
-            <input required className={campo} placeholder="Apellidos" value={f.apellidos} onChange={set("apellidos")} />
+            <input required autoComplete="given-name" className={campo} placeholder="Nombres" value={f.nombres} onChange={set("nombres")} />
+            <input required autoComplete="family-name" className={campo} placeholder="Apellidos" value={f.apellidos} onChange={set("apellidos")} />
           </div>
         )}
-        <input required type="email" className={campo} placeholder="Correo" value={f.correo} onChange={set("correo")} />
-        <input required type="password" className={campo} placeholder="Contraseña" value={f.clave} onChange={set("clave")} />
+        <input required type="email" name="email" autoComplete="username" className={campo} placeholder="Correo" value={f.correo} onChange={set("correo")} />
+        <input required type="password" name="password" autoComplete={modo === "ingresar" ? "current-password" : "new-password"} className={campo} placeholder="Contraseña" value={f.clave} onChange={set("clave")} />
+        {modo === "ingresar" && (
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" checked={recordar} onChange={(e) => setRecordar(e.target.checked)} className="h-4 w-4" />
+            Mantener mi sesión iniciada en este dispositivo
+          </label>
+        )}
         {mensaje && (
           <p className={`rounded-lg px-3 py-2 text-sm ${mensaje.tipo === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-800"}`}>
             {mensaje.texto}
