@@ -66,7 +66,7 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
   return (
     <main className="mx-auto max-w-md px-4 py-12">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo-ue.png" alt="Logo de la institución" className="mb-3 h-28 w-auto" />
+      <img src="/logo-ue.png" alt="Logo de la institución" className="mb-3 h-36 w-auto drop-shadow-sm" />
       <h1 className="text-2xl font-bold text-marca">{NOMBRE_SITIO}</h1>
       <p className="text-sm font-medium text-slate-500">{SUBTITULO_SITIO}</p>
       <p className="mt-4 text-slate-600">{modo === "ingresar" ? "Ingresa con tu cuenta" : modo === "registro" ? "Crea tu cuenta docente" : "Recupera tu contraseña"}</p>
