@@ -13,17 +13,23 @@ const modulos = [
 export default function Home() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-3xl font-bold text-marca">{NOMBRE_SITIO}</h1>
-      <p className="text-lg text-slate-500">{SUBTITULO_SITIO}</p>
-      <div className="mt-4 flex gap-3">
-        <Link href="/ingresar" className="rounded-lg bg-marca px-4 py-2 text-sm font-medium text-white hover:bg-marca-oscuro">Ingresar</Link>
-        <Link href="/panel" className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-100">Mi panel</Link>
-      </div>
-      <p className="mt-4 max-w-2xl text-slate-600">
-        Todo el trabajo docente e institucional en un solo lugar: planificar, evaluar, calificar, tomar asistencia y generar
-        documentos con el membrete de tu unidad educativa.
-      </p>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="grid items-end gap-6 md:grid-cols-[1fr_auto]">
+        <div className="pb-6">
+          <h1 className="text-3xl font-bold text-marca sm:text-4xl">{NOMBRE_SITIO}</h1>
+          <p className="text-lg text-slate-500">{SUBTITULO_SITIO}</p>
+          <p className="mt-4 max-w-xl text-slate-600">
+            Todo el trabajo docente e institucional en un solo lugar: planificar, evaluar, calificar, tomar asistencia y
+            generar documentos con el membrete de tu unidad educativa.
+          </p>
+          <div className="mt-6 flex gap-3">
+            <Link href="/ingresar" className="rounded-lg bg-marca px-5 py-2.5 text-sm font-medium text-white hover:bg-marca-oscuro">Ingresar</Link>
+            <Link href="/panel" className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm hover:bg-slate-100">Mi panel</Link>
+          </div>
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/docentes.png" alt="Docentes de la institución con el uniforme" className="mx-auto h-72 w-auto drop-shadow-xl md:h-96" />
+      </section>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {modulos.map((m) => {
           const tarjeta = (
             <div className="h-full rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">

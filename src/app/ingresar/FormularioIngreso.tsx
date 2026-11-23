@@ -64,7 +64,10 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
   }
 
   return (
-    <main className="mx-auto max-w-md px-4 py-12">
+    <main className="mx-auto grid max-w-5xl items-center gap-10 px-4 py-10 lg:grid-cols-[1fr_420px]">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/docentes.png" alt="Docentes de la institución" className="hidden h-[520px] w-auto justify-self-center drop-shadow-xl lg:block" />
+      <div className="mx-auto w-full max-w-md">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/logo-ue.png" alt="Logo de la institución" className="mb-3 h-36 w-auto drop-shadow-sm" />
       <h1 className="text-2xl font-bold text-marca">{NOMBRE_SITIO}</h1>
@@ -96,18 +99,16 @@ export default function FormularioIngreso({ url, clave }: { url: string; clave: 
         </button>
       </form>
 
-      <div className="mt-4 flex flex-col items-start gap-2 text-sm">
-        {modo === "ingresar" && (
-          <button onClick={() => { setModo("recuperar"); setMensaje(null); }} className="text-marca hover:underline">
-            ¿Olvidaste tu contraseña?
-          </button>
+      <div className="mt-4 flex items-center justify-between text-sm">
+        {modo === "ingresar" ? (
+          <>
+            <button onClick={() => { setModo("registro"); setMensaje(null); }} className="text-marca hover:underline">Crear cuenta</button>
+            <button onClick={() => { setModo("recuperar"); setMensaje(null); }} className="text-slate-500 hover:text-marca hover:underline">¿Olvidaste tu contraseña?</button>
+          </>
+        ) : (
+          <button onClick={() => { setModo("ingresar"); setMensaje(null); }} className="text-marca hover:underline">← Volver a ingresar</button>
         )}
-        <button
-          onClick={() => { setModo(modo === "registro" ? "ingresar" : modo === "ingresar" ? "registro" : "ingresar"); setMensaje(null); }}
-          className="text-marca hover:underline"
-        >
-          {modo === "ingresar" ? "¿No tienes cuenta? Crear cuenta" : "Volver a ingresar"}
-        </button>
+      </div>
       </div>
     </main>
   );
