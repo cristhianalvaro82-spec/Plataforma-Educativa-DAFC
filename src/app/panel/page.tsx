@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { clienteServidor } from "@/lib/supabase/server";
 import { leerConfigSupabase } from "@/lib/supabase/config";
 import ControlSesion from "./ControlSesion";
-import { crearInstitucion } from "./acciones";
+import { crearInstitucion, guardarNombre } from "./acciones";
 
 const NOMBRE_ROL: Record<string, string> = {
   administrador: "Administrador",
@@ -17,14 +17,19 @@ const NOMBRE_ROL: Record<string, string> = {
 
 export const dynamic = "force-dynamic";
 
-export default async function PanelPage() {
+export default async function PanelPage({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
+  const { error: errorMsg, ok: okMsg } = await searchParams;
   const cfg = leerConfigSupabase();
   if (!cfg.configurado) redirect("/ingresar");
   const supabase = await clienteServidor();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/ingresar?motivo=sesion");
 
-  const { data: perfil } = await supabase.from("perfiles").select("nombres, apellidos").eq("id", user.id).single();
+  const { data: perfil } = await supabase.from("perfiles").select("nombres, apellidos").eq("id", user.id).maybeSingle();
+  const meta = (user.user_metadata ?? {}) as Record<string, string>;
+  const nombres = (perfil?.nombres || meta.nombres || "").trim();
+  const apellidos = (perfil?.apellidos || meta.apellidos || "").trim();
+  const nombreCompleto = [nombres, apellidos].filter(Boolean).join(" ");
   const { data: membresias } = await supabase
     .from("miembros")
     .select("rol, instituciones(id, nombre, codigo_amie)")
@@ -46,14 +51,30 @@ export default async function PanelPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
-            Hola, {perfil?.nombres || user.email}
+            Hola, {nombreCompleto || "docente"}
           </h1>
           <p className="text-slate-600">Bienvenido a tu plataforma docente.</p>
+          <p className="text-sm text-slate-400">{user.email}</p>
         </div>
         <form action="/auth/salir" method="post">
           <button className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100">Cerrar sesión</button>
         </form>
       </div>
+
+      {errorMsg && <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{errorMsg}</p>}
+      {okMsg && <p className="mt-6 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">{okMsg}</p>}
+
+      {!nombreCompleto && (
+        <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="font-semibold text-slate-900">¿Cómo te llamas?</h2>
+          <p className="mt-1 text-sm text-slate-600">Tu nombre aparecerá en el saludo y en los documentos.</p>
+          <form action={guardarNombre} className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+            <input name="nombres" required placeholder="Nombres" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            <input name="apellidos" required placeholder="Apellidos" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            <button className="rounded-lg bg-marca px-4 py-2 text-sm font-medium text-white hover:bg-marca-oscuro">Guardar</button>
+          </form>
+        </section>
+      )}
 
       {porInstitucion.size === 0 ? (
         <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
