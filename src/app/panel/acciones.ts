@@ -25,7 +25,9 @@ export async function crearInstitucion(formData: FormData) {
   if (error) {
     const texto = /duplicate|unique/i.test(error.message)
       ? "Ese código AMIE ya está registrado en la plataforma."
-      : "No se pudo registrar: " + error.message;
+      : /Ya perteneces/.test(error.message)
+        ? "Ya perteneces a una unidad educativa. Recarga la página para verla."
+        : "No se pudo registrar: " + error.message;
     redirect("/panel?error=" + encodeURIComponent(texto));
   }
   revalidatePath("/panel");

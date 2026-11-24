@@ -30,20 +30,15 @@ export default async function PanelPage({ searchParams }: { searchParams: Promis
   const nombres = (perfil?.nombres || meta.nombres || "").trim();
   const apellidos = (perfil?.apellidos || meta.apellidos || "").trim();
   const nombreCompleto = [nombres, apellidos].filter(Boolean).join(" ");
-  const { data: membresias } = await supabase
-    .from("miembros")
-    .select("rol, instituciones(id, nombre, codigo_amie)")
-    .eq("usuario_id", user.id);
-
-  type Fila = { rol: string; instituciones: { id: string; nombre: string; codigo_amie: string | null } | null };
-  const filas = (membresias ?? []) as unknown as Fila[];
+  // Si un administrador invitó a este correo, se une automáticamente.
+  await supabase.rpc("aceptar_invitaciones");
+  const { data: mias, error: errorInst } = await supabase.rpc("mis_instituciones");
+  type Fila = { id: string; nombre: string; codigo_amie: string | null; roles: string[] };
   const porInstitucion = new Map<string, { nombre: string; amie: string | null; roles: string[] }>();
-  for (const m of filas) {
-    if (!m.instituciones) continue;
-    const i = porInstitucion.get(m.instituciones.id) ?? { nombre: m.instituciones.nombre, amie: m.instituciones.codigo_amie, roles: [] };
-    i.roles.push(m.rol);
-    porInstitucion.set(m.instituciones.id, i);
+  for (const f of (mias ?? []) as Fila[]) {
+    porInstitucion.set(f.id, { nombre: f.nombre, amie: f.codigo_amie, roles: f.roles ?? [] });
   }
+  const faltaActualizar = !!errorInst;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
@@ -76,7 +71,13 @@ export default async function PanelPage({ searchParams }: { searchParams: Promis
         </section>
       )}
 
-      {porInstitucion.size === 0 ? (
+      {faltaActualizar && (
+        <p className="mt-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Falta aplicar la actualización de la base de datos (archivo 0004_gestion.sql). Mientras tanto no se pueden mostrar tus datos.
+        </p>
+      )}
+
+      {faltaActualizar ? null : porInstitucion.size === 0 ? (
         <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="font-semibold text-slate-900">Registra tu unidad educativa</h2>
           <p className="mt-1 text-sm text-slate-600">
@@ -112,9 +113,24 @@ export default async function PanelPage({ searchParams }: { searchParams: Promis
                     <span>2. Probar un oficio en Word con el membrete</span><span>→</span>
                   </Link>
                 </li>
-                <li className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-slate-400">3. Invitar a los docentes (próximamente)</li>
-                <li className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-slate-400">4. Crear cursos, paralelos y nóminas (próximamente)</li>
               </ol>
+              {i.roles.includes("administrador") && (
+                <>
+                  <h3 className="mt-5 text-sm font-semibold text-slate-800">Gestión de la institución</h3>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                    {[
+                      ["/panel/gestion/docentes", "Docentes", "Invitar, roles, nombres y estado"],
+                      ["/panel/gestion/cursos", "Cursos y asignaturas", "Año lectivo, paralelos y materias"],
+                      ["/panel/gestion/distribucion", "Distribución", "Qué docente da cada asignatura"],
+                    ].map(([href, titulo, texto]) => (
+                      <Link key={href} href={href} className="rounded-lg border border-marca-200 bg-white px-3 py-3 hover:bg-marca-50">
+                        <span className="block text-sm font-semibold text-marca">{titulo}</span>
+                        <span className="block text-xs text-slate-500">{texto}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           ))}
         </section>
