@@ -4,6 +4,7 @@
  * Todos los documentos de la plataforma (oficios, actas, planificaciones...)
  * se construyen sobre esta base para que el membrete sea siempre el mismo.
  */
+import { telefonoValido } from "@/lib/telefono";
 import {
   AlignmentType, BorderStyle, Document, Footer, Header, ImageRun, PageNumber,
   Paragraph, Table, TableCell, TableRow, TextRun, VerticalAlign, WidthType,
@@ -89,7 +90,7 @@ export function crearEncabezado(inst: DatosInstitucion): Header {
 
 /** Pie de página: dirección, contacto, lema y número de página. */
 export function crearPie(inst: DatosInstitucion): Footer {
-  const contacto = [inst.direccion, inst.telefono && `Telf. ${inst.telefono}`, inst.correo]
+  const contacto = [inst.direccion, telefonoValido(inst.telefono) && `Telf. ${telefonoValido(inst.telefono)}`, inst.correo]
     .filter(Boolean).join(" · ");
   const hijos: Paragraph[] = [
     new Paragraph({

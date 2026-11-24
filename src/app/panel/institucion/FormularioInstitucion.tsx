@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { telefonoValido } from "@/lib/telefono";
 import { clienteNavegador } from "@/lib/supabase/client";
 import type { Autoridad, Institucion } from "@/lib/datos/institucion";
 
@@ -40,7 +41,7 @@ export default function FormularioInstitucion(props: {
         const { error } = await supabase.storage.from("logos").upload(logo_path, logo, { upsert: true, contentType: logo.type });
         if (error) throw new Error("No se pudo subir el logo: " + error.message);
       }
-      const { id, ...resto } = { ...inst, logo_path };
+      const { id, ...resto } = { ...inst, logo_path, telefono: telefonoValido(inst.telefono) || null };
       const { error } = await supabase.from("instituciones").update(resto).eq("id", id);
       if (error) throw new Error(error.message);
 
@@ -80,7 +81,7 @@ export default function FormularioInstitucion(props: {
           <input disabled={d} className={campo} placeholder="Circuito" value={v("circuito")} onChange={set("circuito")} />
           <input disabled={d} className={campo} placeholder="Provincia" value={v("provincia")} onChange={set("provincia")} />
           <input disabled={d} className={campo} placeholder="Cantón" value={v("canton")} onChange={set("canton")} />
-          <input disabled={d} className={campo} placeholder="Teléfono" value={v("telefono")} onChange={set("telefono")} />
+          <input disabled={d} className={campo} placeholder="Teléfono (opcional)" value={v("telefono")} onChange={set("telefono")} />
           <input disabled={d} className={`${campo} sm:col-span-2`} placeholder="Dirección" value={v("direccion")} onChange={set("direccion")} />
           <input disabled={d} className={campo} placeholder="Correo institucional" value={v("correo")} onChange={set("correo")} />
           <input disabled={d} className={campo} placeholder="Lema (opcional)" value={v("lema")} onChange={set("lema")} />

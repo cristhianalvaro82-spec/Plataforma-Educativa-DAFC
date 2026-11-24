@@ -122,7 +122,7 @@ export default function FormularioMembrete({ inicial }: { inicial?: Inicial }) {
             </div>
             <input className={campo} placeholder="Dirección" value={inst.direccion} onChange={set("direccion")} />
             <div className="grid grid-cols-2 gap-3">
-              <input className={campo} placeholder="Teléfono" value={inst.telefono} onChange={set("telefono")} />
+              <input className={campo} placeholder="Teléfono (opcional)" value={inst.telefono} onChange={set("telefono")} />
               <input className={campo} placeholder="Correo institucional" value={inst.correo} onChange={set("correo")} />
             </div>
             <input className={campo} placeholder="Lema (opcional)" value={inst.lema} onChange={set("lema")} />
