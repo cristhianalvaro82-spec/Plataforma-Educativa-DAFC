@@ -3,7 +3,7 @@ import { GRADOS, JORNADAS, NOMBRE_SUBNIVEL } from "@/lib/datos/catalogos";
 import Mensajes, { Cabecera, entrada, botonPrincipal, botonSecundario, tarjeta } from "../Mensajes";
 import BotonConfirmar from "../BotonConfirmar";
 import {
-  activarAnio, borrarAsignatura, borrarCurso, cargarAsignaturasBase, crearAnio, crearAsignatura, crearCursos, guardarCurso,
+  activarAnio, borrarAsignatura, importarAsignaturas, borrarCurso, cargarAsignaturasBase, crearAnio, crearAsignatura, crearCursos, guardarCurso,
 } from "./acciones";
 
 export const dynamic = "force-dynamic";
@@ -135,7 +135,7 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-semibold text-slate-900">Asignaturas ({(asignaturas ?? []).length})</h2>
           <form action={cargarAsignaturasBase}>
-            <button className={botonSecundario}>Cargar lista base</button>
+            <button className={botonSecundario}>Cargar lista base de Bachillerato</button>
           </form>
         </div>
         <form action={crearAsignatura} className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
@@ -143,6 +143,22 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
           <input name="area" placeholder="Área (opcional)" className={entrada} />
           <button className={botonPrincipal}>Agregar</button>
         </form>
+        <details className="mt-4 rounded-lg border border-dashed border-marca-200 bg-marca-50/40 px-4 py-3">
+          <summary className="cursor-pointer text-sm font-medium text-marca">Importar muchas asignaturas desde Excel</summary>
+          <p className="mt-2 text-sm text-slate-600">
+            En la <b>primera columna</b> va el nombre de la asignatura o módulo; en la <b>segunda</b> (opcional), el área o la figura profesional.
+            Las que ya existen no se repiten.
+          </p>
+          <form action={importarAsignaturas} className="mt-3 grid gap-3">
+            <label className="grid gap-1 text-sm text-slate-700">Subir archivo Excel (.xlsx) o CSV
+              <input type="file" name="archivo" accept=".xlsx,.csv" className="text-sm" />
+            </label>
+            <label className="grid gap-1 text-sm text-slate-700">…o copia las celdas en Excel y pégalas aquí
+              <textarea name="pegado" rows={4} placeholder={"Mecánica Básica\tElectromecánica Automotriz\nDibujo Técnico\tElectromecánica Automotriz"} className={entrada} />
+            </label>
+            <div><button className={botonPrincipal}>Importar</button></div>
+          </form>
+        </details>
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {((asignaturas ?? []) as Asignatura[]).map((a) => (
             <li key={a.id} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm">

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { contextoGestion, explicar, volver } from "@/lib/datos/gestion";
+import { leerFilas } from "@/lib/excel";
 import { ASIGNATURAS_BASE, GRADOS, JORNADAS } from "@/lib/datos/catalogos";
 
 const RUTA = "/panel/gestion/cursos";
@@ -106,4 +107,34 @@ export async function borrarAsignatura(f: FormData) {
   if (error) volver(RUTA, "error", explicar(error.message));
   revalidatePath(RUTA);
   volver(RUTA, "ok", "Asignatura borrada.");
+}
+
+/**
+ * Importa asignaturas desde Excel o texto pegado.
+ * Columna 1: nombre de la asignatura. Columna 2 (opcional): área o figura profesional.
+ */
+export async function importarAsignaturas(f: FormData) {
+  const { supabase, inst } = await contextoGestion(GESTORES);
+  let filas: string[][];
+  try {
+    filas = await leerFilas(f.get("archivo") as File | null, String(f.get("pegado") ?? ""));
+  } catch (e) {
+    volver(RUTA, "error", e instanceof Error ? e.message : "No se pudo leer el archivo.");
+  }
+  const encabezado = /asignatura|nombre|materia|m[óo]dulo/i;
+  if (filas.length && encabezado.test(filas[0][0] ?? "")) filas = filas.slice(1);
+  const { data: existentes } = await supabase.from("asignaturas").select("nombre").eq("institucion_id", inst.id);
+  const ya = new Set((existentes ?? []).map((a) => a.nombre.toLowerCase()));
+  const nuevas: { institucion_id: string; nombre: string; area: string | null; orden: number }[] = [];
+  for (const [nombre = "", area = ""] of filas) {
+    const n = nombre.replace(/\s+/g, " ").trim();
+    if (!n || n.length > 150 || ya.has(n.toLowerCase())) continue;
+    ya.add(n.toLowerCase());
+    nuevas.push({ institucion_id: inst.id, nombre: n, area: area.trim() || null, orden: 100 + nuevas.length });
+  }
+  if (!nuevas.length) volver(RUTA, "error", "No encontré asignaturas nuevas. Revisa que el nombre esté en la primera columna.");
+  const { error } = await supabase.from("asignaturas").insert(nuevas);
+  if (error) volver(RUTA, "error", explicar(error.message));
+  revalidatePath(RUTA);
+  volver(RUTA, "ok", `${nuevas.length} asignaturas importadas.`);
 }

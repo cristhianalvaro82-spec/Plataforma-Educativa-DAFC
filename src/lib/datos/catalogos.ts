@@ -31,12 +31,13 @@ export const NOMBRE_SUBNIVEL: Record<string, string> = {
 
 export const JORNADAS = ["matutina", "vespertina", "nocturna", "intensiva"];
 
-/** Lista base para empezar rápido; el administrador la ajusta a su malla. */
+/**
+ * Lista base del tronco común de Bachillerato (piloto). El administrador la ajusta a su malla;
+ * los módulos técnicos del BT se importan desde Excel.
+ */
 export const ASIGNATURAS_BASE: { nombre: string; area: string }[] = [
   { nombre: "Lengua y Literatura", area: "Lengua y Literatura" },
   { nombre: "Matemática", area: "Matemática" },
-  { nombre: "Ciencias Naturales", area: "Ciencias Naturales" },
-  { nombre: "Estudios Sociales", area: "Ciencias Sociales" },
   { nombre: "Inglés", area: "Lengua Extranjera" },
   { nombre: "Educación Cultural y Artística", area: "Educación Cultural y Artística" },
   { nombre: "Educación Física", area: "Educación Física" },
