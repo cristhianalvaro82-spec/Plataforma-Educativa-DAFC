@@ -1,5 +1,5 @@
 import { contextoGestion } from "@/lib/datos/gestion";
-import { GRADOS, JORNADAS, NOMBRE_SUBNIVEL } from "@/lib/datos/catalogos";
+import { FIGURAS, GRADOS, JORNADAS, NOMBRE_SUBNIVEL } from "@/lib/datos/catalogos";
 import Mensajes, { Cabecera, entrada, botonPrincipal, botonSecundario, tarjeta } from "../Mensajes";
 import BotonConfirmar from "../BotonConfirmar";
 import {
@@ -91,7 +91,10 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
             <select name="jornada" className={entrada} defaultValue="matutina">
               {JORNADAS.map((j) => <option key={j} value={j}>Jornada {j}</option>)}
             </select>
-            <input name="especialidad" placeholder="Figura profesional (BT)" className={entrada} />
+            <select name="especialidad" defaultValue="" className={entrada}>
+              <option value="">Figura profesional (ninguna)</option>
+              {FIGURAS.map((x) => <option key={x} value={x}>{x}</option>)}
+            </select>
             <button className={botonPrincipal}>Agregar</button>
           </form>
 
@@ -115,7 +118,13 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
                     <form action={guardarCurso} className="grid gap-3 sm:grid-cols-[120px_1fr_1.4fr_auto]">
                       <input type="hidden" name="id" value={c.id} />
                       <label className="grid text-xs text-slate-500">Paralelo<input name="paralelo" defaultValue={c.paralelo} className={entrada} /></label>
-                      <label className="grid text-xs text-slate-500">Figura profesional<input name="especialidad" defaultValue={c.especialidad ?? ""} className={entrada} /></label>
+                      <label className="grid text-xs text-slate-500">Figura profesional
+                        <select name="especialidad" defaultValue={c.especialidad ?? ""} className={entrada}>
+                          <option value="">Ninguna</option>
+                          {FIGURAS.map((x) => <option key={x} value={x}>{x}</option>)}
+                          {c.especialidad && !FIGURAS.includes(c.especialidad) && <option value={c.especialidad}>{c.especialidad}</option>}
+                        </select>
+                      </label>
                       <label className="grid text-xs text-slate-500">Tutor
                         <select name="tutor" defaultValue={c.tutor_id ?? ""} className={entrada}>
                           <option value="">Sin tutor</option>
@@ -162,7 +171,7 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
               <input type="file" name="archivo" accept=".xlsx,.csv" className="text-sm" />
             </label>
             <label className="grid gap-1 text-sm text-slate-700">…o copia las celdas en Excel y pégalas aquí
-              <textarea name="pegado" rows={4} placeholder={"Mecánica Básica\tElectromecánica Automotriz\nDibujo Técnico\tElectromecánica Automotriz"} className={entrada} />
+              <textarea name="pegado" rows={4} placeholder={"Mecánica Básica\tElectromecánica Automotriz\nContabilidad General\tGestión Administrativa y Logística"} className={entrada} />
             </label>
             <div><button className={botonPrincipal}>Importar</button></div>
           </form>

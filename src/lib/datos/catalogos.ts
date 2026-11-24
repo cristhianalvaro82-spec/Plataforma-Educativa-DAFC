@@ -49,3 +49,11 @@ export const ASIGNATURAS_BASE: { nombre: string; area: string }[] = [
   { nombre: "Educación para la Ciudadanía", area: "Ciencias Sociales" },
   { nombre: "Emprendimiento y Gestión", area: "Módulo interdisciplinar" },
 ];
+
+/** Figuras profesionales y opción de Bachillerato de la institución. */
+export const FIGURAS = [
+  "Electromecánica Automotriz",
+  "Mecánica Industrial",
+  "Gestión Administrativa y Logística",
+  "Ciencias Generales",
+];
