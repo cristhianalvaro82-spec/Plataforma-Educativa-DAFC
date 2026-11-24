@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { clienteNavegador } from "@/lib/supabase/client";
+import CampoClave from "@/components/CampoClave";
 
 const campo = "w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-marca";
 
@@ -59,8 +60,8 @@ export default function FormularioNuevaClave({ url, clave }: { url: string; clav
       )}
       {listo === "ok" && (
         <form onSubmit={guardar} className="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <input required type="password" autoComplete="new-password" className={campo} placeholder="Nueva contraseña (mínimo 8 caracteres)" value={c1} onChange={(e) => setC1(e.target.value)} />
-          <input required type="password" autoComplete="new-password" className={campo} placeholder="Repite la nueva contraseña" value={c2} onChange={(e) => setC2(e.target.value)} />
+          <CampoClave required autoComplete="new-password" className={campo} placeholder="Nueva contraseña (mínimo 8 caracteres)" value={c1} onChange={(e) => setC1(e.target.value)} />
+          <CampoClave required autoComplete="new-password" className={campo} placeholder="Repite la nueva contraseña" value={c2} onChange={(e) => setC2(e.target.value)} />
           {mensaje && (
             <p className={`rounded-lg px-3 py-2 text-sm ${mensaje.tipo === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-800"}`}>{mensaje.texto}</p>
           )}

@@ -22,7 +22,7 @@ export default async function PanelPage() {
   if (!cfg.configurado) redirect("/ingresar");
   const supabase = await clienteServidor();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/ingresar");
+  if (!user) redirect("/ingresar?motivo=sesion");
 
   const { data: perfil } = await supabase.from("perfiles").select("nombres, apellidos").eq("id", user.id).single();
   const { data: membresias } = await supabase
