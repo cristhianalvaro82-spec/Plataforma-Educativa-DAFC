@@ -3,12 +3,12 @@ import { GRADOS, JORNADAS, NOMBRE_SUBNIVEL } from "@/lib/datos/catalogos";
 import Mensajes, { Cabecera, entrada, botonPrincipal, botonSecundario, tarjeta } from "../Mensajes";
 import BotonConfirmar from "../BotonConfirmar";
 import {
-  activarAnio, borrarAsignatura, importarAsignaturas, borrarCurso, cargarAsignaturasBase, crearAnio, crearAsignatura, crearCursos, guardarCurso,
+  activarAnio, borrarAsignatura, guardarFechasAnio, importarAsignaturas, borrarCurso, cargarAsignaturasBase, crearAnio, crearAsignatura, crearCursos, guardarCurso,
 } from "./acciones";
 
 export const dynamic = "force-dynamic";
 
-type Anio = { id: string; nombre: string; activo: boolean };
+type Anio = { id: string; nombre: string; activo: boolean; fecha_inicio: string | null; fecha_fin: string | null };
 type Curso = { id: string; grado: string; paralelo: string; jornada: string; subnivel: string; especialidad: string | null; tutor_id: string | null };
 type Asignatura = { id: string; nombre: string; area: string | null };
 type Docente = { usuario_id: string; nombres: string; apellidos: string; activo: boolean };
@@ -18,7 +18,7 @@ const ordenGrado = (g: string) => GRADOS.findIndex((x) => x.grado === g);
 export default async function CursosPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
   const { ok, error } = await searchParams;
   const { supabase, inst } = await contextoGestion(["administrador", "vicerrectorado"]);
-  const { data: anios } = await supabase.from("anios_lectivos").select("id, nombre, activo").eq("institucion_id", inst.id).order("nombre", { ascending: false });
+  const { data: anios } = await supabase.from("anios_lectivos").select("id, nombre, activo, fecha_inicio, fecha_fin").eq("institucion_id", inst.id).order("nombre", { ascending: false });
   const anio = ((anios ?? []) as Anio[]).find((a) => a.activo) ?? null;
   const [{ data: cursos }, { data: asignaturas }, { data: docentes }] = await Promise.all([
     anio
@@ -44,16 +44,24 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
       <section className={tarjeta}>
         <h2 className="font-semibold text-slate-900">Año lectivo</h2>
         {anio ? (
-          <p className="mt-1 text-sm text-slate-600">Trabajando en el año lectivo <b className="text-marca">{anio.nombre}</b>.</p>
+          <>
+            <p className="mt-1 text-sm text-slate-600">Trabajando en el año lectivo <b className="text-marca">{anio.nombre}</b>.</p>
+            <form action={guardarFechasAnio} className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+              <input type="hidden" name="id" value={anio.id} />
+              <label className="grid text-xs text-slate-500">Inicio (opcional)<input name="inicio" type="date" defaultValue={anio.fecha_inicio ?? ""} className={entrada} /></label>
+              <label className="grid text-xs text-slate-500">Fin (opcional, complétalo cuando se conozca)<input name="fin" type="date" defaultValue={anio.fecha_fin ?? ""} className={entrada} /></label>
+              <button className={`${botonSecundario} self-end py-2`}>Guardar fechas</button>
+            </form>
+          </>
         ) : (
-          <p className="mt-1 text-sm text-slate-600">Crea el año lectivo para empezar a registrar cursos.</p>
+          <p className="mt-1 text-sm text-slate-600">Crea el año lectivo que está en curso. Las fechas son opcionales; puedes completarlas después.</p>
         )}
         <details className="mt-3" open={!anio}>
           <summary className="cursor-pointer text-sm text-marca">{anio ? "Crear un nuevo año lectivo" : "Crear año lectivo"}</summary>
           <form action={crearAnio} className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
             <input name="nombre" required defaultValue={anio ? "" : "2026-2027"} placeholder="2026-2027" className={entrada} />
-            <label className="grid text-xs text-slate-500">Inicio<input name="inicio" type="date" className={entrada} /></label>
-            <label className="grid text-xs text-slate-500">Fin<input name="fin" type="date" className={entrada} /></label>
+            <label className="grid text-xs text-slate-500">Inicio (opcional)<input name="inicio" type="date" className={entrada} /></label>
+            <label className="grid text-xs text-slate-500">Fin (opcional)<input name="fin" type="date" className={entrada} /></label>
             <button className={`${botonPrincipal} self-end`}>Crear</button>
           </form>
         </details>

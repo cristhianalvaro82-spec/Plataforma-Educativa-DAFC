@@ -138,3 +138,13 @@ export async function importarAsignaturas(f: FormData) {
   revalidatePath(RUTA);
   volver(RUTA, "ok", `${nuevas.length} asignaturas importadas.`);
 }
+
+export async function guardarFechasAnio(f: FormData) {
+  const { supabase } = await contextoGestion(GESTORES);
+  const { error } = await supabase.from("anios_lectivos").update({
+    fecha_inicio: texto(f, "inicio") || null, fecha_fin: texto(f, "fin") || null,
+  }).eq("id", texto(f, "id"));
+  if (error) volver(RUTA, "error", explicar(error.message));
+  revalidatePath(RUTA);
+  volver(RUTA, "ok", "Fechas del año lectivo guardadas.");
+}
