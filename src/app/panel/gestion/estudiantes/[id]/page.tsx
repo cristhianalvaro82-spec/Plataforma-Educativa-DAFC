@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { contextoGestion } from "@/lib/datos/gestion";
-import { CAMPOS_ESTUDIANTE, EDITORES, LECTORES, NOMBRE_TIPO, OPCIONES, TIPOS, camposDe } from "@/lib/datos/estudiantes";
+import { BUCKET_FOTOS, CAMPOS_ESTUDIANTE, EDITORES, LECTORES, NOMBRE_TIPO, OPCIONES, TIPOS, camposDe } from "@/lib/datos/estudiantes";
 import Mensajes, { entrada, botonPrincipal, tarjeta } from "../../Mensajes";
 import { guardarFicha } from "../acciones";
+import { leerConfigSupabase } from "@/lib/supabase/config";
+import FotoEstudiante from "./FotoEstudiante";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +49,11 @@ export default async function FichaPage({ params, searchParams }: {
   const est = e as Dato & { familiares: Dato[] };
   const fam = (tipo: string) => est.familiares.find((f) => f.tipo === tipo) ?? {};
   const v = (x: unknown) => (x == null ? "" : String(x));
+  const fotoPath = (est.foto_path as string | null) ?? null;
+  const fotoUrl = fotoPath
+    ? (await supabase.storage.from(BUCKET_FOTOS).createSignedUrl(fotoPath, 600)).data?.signedUrl ?? null
+    : null;
+  const { url, key } = leerConfigSupabase();
   const volverA = `/panel/gestion/estudiantes${curso ? `?curso=${curso}` : ""}`;
 
   return (
@@ -62,6 +69,10 @@ export default async function FichaPage({ params, searchParams }: {
       </div>
       {!editor && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Solo Inspección, DECE y el administrador pueden modificar la ficha.</p>}
       <Mensajes ok={ok} error={error} />
+      <section className={tarjeta}>
+        <FotoEstudiante url={url} clave={key} institucionId={inst.id} estudianteId={id}
+          fotoPath={fotoPath} fotoUrl={fotoUrl} editor={editor} />
+      </section>
 
       <form action={guardarFicha}>
         <input type="hidden" name="id" value={id} />

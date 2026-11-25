@@ -196,3 +196,6 @@ export function interpretarNomina(filas: string[][]): { registros: FilaEstudiant
   }
   return { registros, columnasReconocidas: columnas.filter(Boolean).length };
 }
+
+/** Depósito privado de fotos tamaño carné (ver 0006_fotos.sql). */
+export const BUCKET_FOTOS = "fotos-estudiantes";

@@ -1,10 +1,10 @@
 import {
-  AlignmentType, BorderStyle, Packer, Paragraph, ShadingType, Table, TableCell, TableRow, TextRun, WidthType,
+  AlignmentType, BorderStyle, ImageRun, Packer, VerticalAlign, Paragraph, ShadingType, Table, TableCell, TableRow, TextRun, WidthType,
 } from "docx";
 import { contextoGestion } from "@/lib/datos/gestion";
 import { institucionDelUsuario, urlLogo } from "@/lib/datos/institucion";
 import { leerConfigSupabase } from "@/lib/supabase/config";
-import { CAMPOS_ESTUDIANTE, LECTORES, NOMBRE_TIPO, TIPOS, camposDe } from "@/lib/datos/estudiantes";
+import { BUCKET_FOTOS, CAMPOS_ESTUDIANTE, LECTORES, NOMBRE_TIPO, TIPOS, camposDe } from "@/lib/datos/estudiantes";
 import { bloqueFirma, documentoMembretado, type DatosInstitucion } from "@/lib/word/membrete";
 import { medirImagen } from "@/lib/word/imagen";
 import { MEMBRETE_OFICIAL } from "@/lib/sitio";
@@ -81,11 +81,34 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const v = (x: unknown) => (x == null ? "" : String(x));
   const nombre = `${v(est.apellidos)} ${v(est.nombres)}`.trim();
 
-  const contenido = [
+  const titulo = [
     new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 },
       children: [new TextRun({ text: "FICHA DEL ESTUDIANTE", bold: true, size: 28, color })] }),
     new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 },
       children: [new TextRun({ text: [curso, mat?.numero_lista ? `N.º de lista ${mat.numero_lista}` : ""].filter(Boolean).join(" · "), size: 18, color: "555555" })] }),
+  ];
+  // Foto tamaño carné (opcional), a la derecha del título.
+  let foto: ImageRun | null = null;
+  if (est.foto_path) {
+    const { data: archivo } = await supabase.storage.from(BUCKET_FOTOS).download(String(est.foto_path));
+    if (archivo) {
+      const bytes = new Uint8Array(await archivo.arrayBuffer());
+      const medida = medirImagen(bytes);
+      if (medida) foto = new ImageRun({ type: medida.tipo, data: bytes, transformation: { width: Math.round(120 * medida.proporcion), height: 120 } });
+    }
+  }
+  const SIN = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+  const sinBordes = { top: SIN, bottom: SIN, left: SIN, right: SIN };
+  const cabecera = foto
+    ? [new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [new TableRow({ children: [
+        new TableCell({ width: { size: 80, type: WidthType.PERCENTAGE }, borders: sinBordes, verticalAlign: VerticalAlign.CENTER, children: titulo }),
+        new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, borders: sinBordes,
+          children: [new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 120 }, children: [foto] })] }),
+      ] })] })]
+    : titulo;
+
+  const contenido = [
+    ...cabecera,
     tablaDatos("Datos del estudiante", color,
       CAMPOS_ESTUDIANTE.map(([k, t]) => [t.replace(" (H/M)", ""), formatear(k, est[k])] as [string, string])),
     ...TIPOS.flatMap((tipo) => {
