@@ -12,8 +12,9 @@ export default function Encabezado() {
             <span className="block text-xs text-marca-100">{SUBTITULO_SITIO}</span>
           </span>
         </Link>
-        <nav className="ml-auto flex gap-4 text-sm">
+        <nav className="ml-auto flex shrink-0 gap-4 whitespace-nowrap text-sm">
           <Link href="/panel" className="hover:underline">Mi panel</Link>
+          <Link href="/panel/gestion" className="hover:underline">Gestión</Link>
         </nav>
       </div>
       <div className="flex h-1">

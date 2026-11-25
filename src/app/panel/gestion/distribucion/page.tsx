@@ -86,7 +86,7 @@ export default async function DistribucionPage({ searchParams }: { searchParams:
                         {activos.map((d) => <option key={d.usuario_id} value={d.usuario_id}>{d.apellidos} {d.nombres}</option>)}
                       </select>
                       <label className="flex items-center gap-2 text-xs text-slate-500">
-                        <input name={`per_${a.id}`} type="number" min={1} max={40} defaultValue={c?.periodos_semana ?? 1} className={`${entrada} w-16`} />
+                        <input name={`per_${a.id}`} type="number" min={1} max={40} defaultValue={c?.periodos_semana ?? 1} className={`${entrada.replace("w-full ", "")} w-16`} />
                         h/sem
                       </label>
                     </div>
