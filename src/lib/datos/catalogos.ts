@@ -32,22 +32,24 @@ export const NOMBRE_SUBNIVEL: Record<string, string> = {
 export const JORNADAS = ["matutina", "vespertina", "nocturna", "intensiva"];
 
 /**
- * Lista base del tronco común de Bachillerato (piloto). El administrador la ajusta a su malla;
- * los módulos técnicos del BT se importan desde Excel.
+ * Tronco común de Bachillerato según el Acuerdo MINEDEC-MINEDEC-2025-00051-A
+ * (16-oct-2025), art. 1. Las mismas asignaturas rigen para BGU en Ciencias.
+ * Los módulos técnicos de cada figura se importan desde Excel.
  */
 export const ASIGNATURAS_BASE: { nombre: string; area: string }[] = [
   { nombre: "Lengua y Literatura", area: "Lengua y Literatura" },
   { nombre: "Matemática", area: "Matemática" },
-  { nombre: "Inglés", area: "Lengua Extranjera" },
-  { nombre: "Educación Cultural y Artística", area: "Educación Cultural y Artística" },
-  { nombre: "Educación Física", area: "Educación Física" },
+  { nombre: "Historia", area: "Ciencias Sociales" },
+  { nombre: "Educación para la Ciudadanía", area: "Ciencias Sociales" },
+  { nombre: "Filosofía", area: "Ciencias Sociales" },
+  { nombre: "Biología", area: "Ciencias Naturales" },
   { nombre: "Física", area: "Ciencias Naturales" },
   { nombre: "Química", area: "Ciencias Naturales" },
-  { nombre: "Biología", area: "Ciencias Naturales" },
-  { nombre: "Historia", area: "Ciencias Sociales" },
-  { nombre: "Filosofía", area: "Ciencias Sociales" },
-  { nombre: "Educación para la Ciudadanía", area: "Ciencias Sociales" },
-  { nombre: "Emprendimiento y Gestión", area: "Módulo interdisciplinar" },
+  { nombre: "Educación Cultural y Artística", area: "Educación Cultural y Artística" },
+  { nombre: "Educación Física", area: "Educación Física" },
+  { nombre: "Inglés", area: "Lengua Extranjera" },
+  { nombre: "Cívica y Acompañamiento Integral en el Aula", area: "Tronco común" },
+  { nombre: "Emprendimiento y Gestión", area: "Tronco común" },
 ];
 
 /** Figuras profesionales y opción de Bachillerato de la institución. */
