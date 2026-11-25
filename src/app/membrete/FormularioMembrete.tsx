@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Packer } from "docx";
 import { crearOficio, type DatosInstitucion } from "@/lib/word/membrete";
+import { MEMBRETE_OFICIAL } from "@/lib/sitio";
 
 async function proporcionDe(datos: ArrayBuffer): Promise<number> {
   try {
@@ -76,7 +77,11 @@ export default function FormularioMembrete({ inicial }: { inicial?: Inicial }) {
   async function descargar() {
     setGenerando(true);
     try {
-      const doc = crearOficio(inst, {
+      // Hoja membretada oficial del Ministerio como fondo de la página.
+      const r = await fetch(MEMBRETE_OFICIAL.fondo).catch(() => null);
+      const fondo = r && r.ok ? await r.arrayBuffer() : null;
+      const base = fondo ? { ...inst, oficial: { fondo, lugar: MEMBRETE_OFICIAL.lugar, pie: MEMBRETE_OFICIAL.pie } } : inst;
+      const doc = crearOficio(base, {
         tipo: oficio.tipo,
         numero: oficio.numero,
         ciudad: oficio.ciudad || inst.canton || "Ecuador",

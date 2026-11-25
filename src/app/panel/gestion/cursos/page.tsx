@@ -121,10 +121,21 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
                     </span>
                   </summary>
                   <div className="border-t border-slate-100 px-4 py-4">
-                    <form action={guardarCurso} className="grid gap-3 sm:grid-cols-[120px_1fr_1.4fr_auto]">
+                    <form action={guardarCurso} className="grid gap-3 sm:grid-cols-[1.2fr_100px_1fr]">
                       <input type="hidden" name="id" value={c.id} />
+                      <label className="grid text-xs text-slate-500">Grado o curso
+                        <select name="grado" defaultValue={c.grado} className={entrada}>
+                          {GRADOS.map((g) => <option key={g.grado} value={g.grado}>{g.grado}</option>)}
+                          {!GRADOS.some((g) => g.grado === c.grado) && <option value={c.grado}>{c.grado}</option>}
+                        </select>
+                      </label>
                       <label className="grid text-xs text-slate-500">Paralelo<input name="paralelo" defaultValue={c.paralelo} className={entrada} /></label>
-                      <label className="grid text-xs text-slate-500">Figura profesional
+                      <label className="grid text-xs text-slate-500">Jornada
+                        <select name="jornada" defaultValue={c.jornada} className={entrada}>
+                          {JORNADAS.map((j) => <option key={j} value={j}>{j[0].toUpperCase() + j.slice(1)}</option>)}
+                        </select>
+                      </label>
+                      <label className="grid text-xs text-slate-500 sm:col-span-2">Figura profesional
                         <select name="especialidad" defaultValue={c.especialidad ?? ""} className={entrada}>
                           <option value="">Ninguna</option>
                           {FIGURAS.map((x) => <option key={x} value={x}>{x}</option>)}
@@ -137,7 +148,7 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
                           {activos.map((d) => <option key={d.usuario_id} value={d.usuario_id}>{d.apellidos} {d.nombres}</option>)}
                         </select>
                       </label>
-                      <button className={`${botonPrincipal} self-end`}>Guardar</button>
+                      <button className={`${botonPrincipal} self-end`}>Guardar cambios</button>
                     </form>
                     <form action={borrarCurso} className="mt-3 border-t border-slate-100 pt-3">
                       <input type="hidden" name="id" value={c.id} />

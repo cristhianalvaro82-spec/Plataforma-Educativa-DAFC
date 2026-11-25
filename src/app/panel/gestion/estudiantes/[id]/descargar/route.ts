@@ -7,6 +7,7 @@ import { leerConfigSupabase } from "@/lib/supabase/config";
 import { CAMPOS_ESTUDIANTE, LECTORES, NOMBRE_TIPO, TIPOS, camposDe } from "@/lib/datos/estudiantes";
 import { bloqueFirma, documentoMembretado, type DatosInstitucion } from "@/lib/word/membrete";
 import { medirImagen } from "@/lib/word/imagen";
+import { MEMBRETE_OFICIAL } from "@/lib/sitio";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +71,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       if (medida) inst.logo = { datos: bytes, ...medida };
     }
   } catch { /* sin logo */ }
+  try {
+    const r = await fetch(new URL(MEMBRETE_OFICIAL.fondo, req.url));
+    if (r.ok) inst.oficial = { fondo: new Uint8Array(await r.arrayBuffer()), lugar: MEMBRETE_OFICIAL.lugar, pie: MEMBRETE_OFICIAL.pie };
+  } catch { /* membrete simple */ }
 
   const color = (inst.colorPrimario ?? "#011681").replace("#", "");
   const curso = mat?.cursos ? `${mat.cursos.grado} "${mat.cursos.paralelo}" · Jornada ${mat.cursos.jornada}${mat.cursos.especialidad ? ` · ${mat.cursos.especialidad}` : ""}` : "";

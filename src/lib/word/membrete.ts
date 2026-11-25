@@ -6,7 +6,8 @@
  */
 import { telefonoValido } from "@/lib/telefono";
 import {
-  AlignmentType, BorderStyle, Document, Footer, Header, ImageRun, PageNumber,
+  AlignmentType, BorderStyle, Document, Footer, Header, HorizontalPositionRelativeFrom, ImageRun, PageNumber,
+  TextWrappingType, VerticalPositionRelativeFrom,
   Paragraph, Table, TableCell, TableRow, TextRun, VerticalAlign, WidthType,
   type ISectionOptions,
 } from "docx";
@@ -25,6 +26,8 @@ export type DatosInstitucion = {
   anioLectivo?: string;
   colorPrimario?: string; // "#1F4E79"
   logo?: { datos: ArrayBuffer | Uint8Array; tipo: "png" | "jpg"; proporcion?: number }; // proporcion = ancho / alto
+  /** Hoja membretada oficial: imagen de fondo (A4) + lugar + líneas del pie. Si existe, reemplaza el diseño propio. */
+  oficial?: { fondo: ArrayBuffer | Uint8Array; lugar?: string; pie: [string, string][] };
 };
 
 export type Firmante = { nombre: string; cargo: string; titulo?: string };
@@ -119,15 +122,88 @@ export function bloqueFirma(f: Firmante): Paragraph[] {
   ];
 }
 
+// ---------------------------------------------------------------------
+// Hoja membretada oficial (fondo del Ministerio + bloque de la U.E.)
+// ---------------------------------------------------------------------
+const MORADO = "4B4A8E"; // color de los textos de la hoja oficial
+
+/** "Unidad Educativa Dr. Andrés F. Córdova" → "DR. ANDRÉS F. CÓRDOVA" */
+function nombreSinTipo(nombre: string) {
+  return nombre.replace(/^\s*(unidad educativa|u\.\s*e\.)\s*/i, "").replace(/["“”]/g, "").trim().toLocaleUpperCase("es-EC");
+}
+
+export function crearEncabezadoOficial(inst: DatosInstitucion): Header {
+  const of = inst.oficial!;
+  // A4 = 210 × 297 mm = 793,7 × 1122,5 px a 96 ppp
+  const fondo = new ImageRun({
+    type: "png", data: of.fondo, transformation: { width: 794, height: 1123 },
+    floating: {
+      horizontalPosition: { relative: HorizontalPositionRelativeFrom.PAGE, offset: 0 },
+      verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, offset: 0 },
+      behindDocument: true, allowOverlap: true, wrap: { type: TextWrappingType.NONE },
+    },
+  });
+  const lugar = [inst.canton, inst.provincia].every(Boolean)
+    ? `${inst.canton} – ${inst.provincia} - Ecuador`.toLocaleUpperCase("es-EC")
+    : of.lugar ?? "";
+  const lineas = [
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "UNIDAD EDUCATIVA", bold: true, size: 22, color: color(inst) })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `“${nombreSinTipo(inst.nombre)}”`, bold: true, size: 26, color: color(inst) })] }),
+  ];
+  if (inst.codigoAmie) lineas.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `AMIE ${inst.codigoAmie}`, bold: true, size: 18, color: MORADO })] }));
+  if (lugar) lineas.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: lugar, size: 16, color: MORADO })] }));
+
+  const celda = (hijos: Paragraph[], ancho: number) => new TableCell({
+    width: { size: ancho, type: WidthType.PERCENTAGE }, verticalAlign: VerticalAlign.CENTER, borders: SIN_BORDE, children: hijos,
+  });
+  const logo = inst.logo
+    ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [new ImageRun({ type: inst.logo.tipo, data: inst.logo.datos,
+        transformation: { width: Math.round(68 * (inst.logo.proporcion ?? 1)), height: 68 } })] })]
+    : [new Paragraph({ children: [] })];
+  return new Header({
+    children: [
+      new Paragraph({ spacing: { before: 1150 }, children: [fondo] }),
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [new TableRow({ children: [celda(logo, 16), celda(lineas, 68), celda([new Paragraph({ children: [] })], 16)] })],
+      }),
+    ],
+  });
+}
+
+export function crearPieOficial(inst: DatosInstitucion): Footer {
+  return new Footer({
+    children: inst.oficial!.pie.map(([etiqueta, valor], i, todas) => new Paragraph({
+      spacing: { after: 0, line: 220 },
+      children: [
+        ...(etiqueta ? [new TextRun({ text: `${etiqueta} `, bold: true, size: 15, color: MORADO })] : []),
+        new TextRun({ text: valor, size: 15, color: MORADO }),
+        ...(i === todas.length - 1
+          ? [new TextRun({ children: ["\t\tPágina ", PageNumber.CURRENT, " de ", PageNumber.TOTAL_PAGES], size: 14, color: "888888" })]
+          : []),
+      ],
+      tabStops: [{ type: "right" as const, position: 8504 }],
+    })),
+  });
+}
+
 /** Envuelve cualquier contenido con el membrete de la institución. */
 export function documentoMembretado(inst: DatosInstitucion, contenido: ISectionOptions["children"]): Document {
+  const oficial = !!inst.oficial;
   return new Document({
     creator: inst.nombre,
     styles: { default: { document: { run: { font: "Arial", size: 22 } } } },
     sections: [{
-      properties: { page: { margin: { top: 1700, bottom: 1300, left: 1400, right: 1400, header: 500, footer: 400 } } },
-      headers: { default: crearEncabezado(inst) },
-      footers: { default: crearPie(inst) },
+      properties: {
+        page: {
+          size: { width: 11906, height: 16838 },
+          margin: oficial
+            ? { top: 2950, bottom: 1950, left: 1701, right: 1701, header: 300, footer: 380 }
+            : { top: 1700, bottom: 1300, left: 1400, right: 1400, header: 500, footer: 400 },
+        },
+      },
+      headers: { default: oficial ? crearEncabezadoOficial(inst) : crearEncabezado(inst) },
+      footers: { default: oficial ? crearPieOficial(inst) : crearPie(inst) },
       children: contenido,
     }],
   });

@@ -57,12 +57,18 @@ export async function crearCursos(f: FormData) {
 
 export async function guardarCurso(f: FormData) {
   const { supabase } = await contextoGestion(GESTORES);
+  const g = GRADOS.find((x) => x.grado === texto(f, "grado"));
+  const paralelo = texto(f, "paralelo").toUpperCase();
+  if (!paralelo) volver(RUTA, "error", "Escribe el paralelo del curso.");
   const { error } = await supabase.from("cursos").update({
-    paralelo: texto(f, "paralelo").toUpperCase(),
+    ...(g ? { grado: g.grado, subnivel: g.subnivel } : {}),
+    jornada: JORNADAS.includes(texto(f, "jornada")) ? texto(f, "jornada") : undefined,
+    paralelo,
     especialidad: texto(f, "especialidad") || null,
     tutor_id: texto(f, "tutor") || null,
   }).eq("id", texto(f, "id"));
-  if (error) volver(RUTA, "error", explicar(error.message));
+  if (error) volver(RUTA, "error", /duplicate|unique/i.test(error.message)
+    ? "Ya existe otro curso con ese grado, paralelo y jornada." : explicar(error.message));
   revalidatePath(RUTA);
   volver(RUTA, "ok", "Curso actualizado.");
 }
