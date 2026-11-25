@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { contextoGestion } from "@/lib/datos/gestion";
 import { GRADOS } from "@/lib/datos/catalogos";
-import { EDITORES, LECTORES } from "@/lib/datos/estudiantes";
+import { EDITORES, LECTORES, claveNombre } from "@/lib/datos/estudiantes";
 import Mensajes, { Cabecera, archivo, entrada, botonPrincipal, botonSecundario, tarjeta } from "../Mensajes";
 import BotonConfirmar from "../BotonConfirmar";
-import { agregarEstudiante, cambiarRetiro, importarNomina, quitarDelCurso } from "./acciones";
+import { agregarEstudiante, asignarCurso, borrarFicha, cambiarRetiro, importarNomina, quitarDelCurso } from "./acciones";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,8 @@ type Fila = {
   estudiantes: { id: string; cedula: string | null; apellidos: string; nombres: string; celular: string | null; correo: string | null;
     familiares: { tipo: string; apellidos: string | null; nombres: string | null; celular: string | null }[] } | null;
 };
+
+const FALTA = <span className="text-slate-400" title="Sin dato">—</span>;
 
 const ordenGrado = (g: string) => GRADOS.findIndex((x) => x.grado === g);
 
@@ -27,7 +29,20 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
     : { data: [] };
   const lista = ((cursos ?? []) as Curso[]).sort((a, b) =>
     ordenGrado(a.grado) - ordenGrado(b.grado) || a.jornada.localeCompare(b.jornada) || a.paralelo.localeCompare(b.paralelo));
+  const verSinCurso = cursoId === "sin";
   const actual = lista.find((c) => c.id === cursoId) ?? lista[0];
+
+  // Estudiantes con ficha guardada pero sin curso en el año lectivo activo.
+  type Suelto = { id: string; cedula: string | null; apellidos: string; nombres: string };
+  const [{ data: todos }, { data: mats }] = await Promise.all([
+    supabase.from("estudiantes").select("id, cedula, apellidos, nombres").eq("institucion_id", inst.id).order("apellidos").order("nombres"),
+    lista.length ? supabase.from("matriculas").select("estudiante_id, curso_id").in("curso_id", lista.map((c) => c.id)) : Promise.resolve({ data: [] }),
+  ]);
+  const cursoDe = new Map(((mats ?? []) as { estudiante_id: string; curso_id: string }[]).map((m) => [m.estudiante_id, m.curso_id]));
+  const sinCurso = ((todos ?? []) as Suelto[]).filter((e) => !cursoDe.has(e.id));
+  // Posible duplicado: mismo nombre que alguien que sí está en un curso.
+  const conCurso = new Map(((todos ?? []) as Suelto[]).filter((e) => cursoDe.has(e.id)).map((e) => [claveNombre(e.apellidos, e.nombres), e]));
+  const nombreCurso = (id: string | undefined) => { const c = lista.find((x) => x.id === id); return c ? `${c.grado} "${c.paralelo}"` : ""; };
 
   const { data: filas } = actual
     ? await supabase.from("matriculas")
@@ -53,7 +68,7 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
         <div className="mt-6 grid gap-6 lg:grid-cols-[220px_1fr]">
           <nav className="flex gap-2 overflow-x-auto lg:flex-col">
             {lista.map((c) => {
-              const sel = c.id === actual?.id;
+              const sel = !verSinCurso && c.id === actual?.id;
               return (
                 <Link key={c.id} href={`?curso=${c.id}`}
                   className={`shrink-0 rounded-lg border px-3 py-2 text-sm ${sel ? "border-marca bg-marca text-white" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>
@@ -62,7 +77,68 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
                 </Link>
               );
             })}
+            {(sinCurso.length > 0 || verSinCurso) && (
+              <Link href="?curso=sin"
+                className={`shrink-0 rounded-lg border px-3 py-2 text-sm ${verSinCurso ? "border-amber-600 bg-amber-600 text-white" : "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"}`}>
+                Sin curso ({sinCurso.length})
+                <span className={`block text-xs ${verSinCurso ? "text-amber-100" : "text-amber-700"}`}>Fichas guardadas</span>
+              </Link>
+            )}
           </nav>
+
+          {verSinCurso ? (
+            <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="font-semibold text-slate-900">Sin curso · {sinCurso.length} estudiantes</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Son fichas guardadas de estudiantes que hoy no están en ningún curso (por ejemplo, porque no venían en la última nómina que subiste).
+                Puedes pasarlos a su curso o, si la ficha sobra, borrarla.
+              </p>
+              {sinCurso.length === 0 ? <p className="mt-4 text-sm text-slate-500">No hay estudiantes sin curso. 👍</p> : (
+                <>
+                  <form id="asignar" action={asignarCurso} className="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-slate-50 p-3">
+                    <span className="text-sm">Pasar los marcados a:</span>
+                    <select name="destino" required defaultValue="" className={entrada.replace("w-full ", "") + " w-auto"}>
+                      <option value="" disabled>Elige el curso</option>
+                      {lista.map((c) => <option key={c.id} value={c.id}>{c.grado} &ldquo;{c.paralelo}&rdquo;{c.especialidad ? ` · ${c.especialidad}` : ""}</option>)}
+                    </select>
+                    <button className={botonPrincipal} disabled={!editor}>Pasar al curso</button>
+                  </form>
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full min-w-[640px] text-left text-sm">
+                      <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
+                        <tr><th className="py-2 pr-2">Marcar</th><th>Cédula</th><th>Apellidos y nombres</th><th>Aviso</th><th></th></tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {sinCurso.map((e) => {
+                          const dup = conCurso.get(claveNombre(e.apellidos, e.nombres));
+                          return (
+                            <tr key={e.id} className="hover:bg-marca-50/50">
+                              <td className="py-2 pr-2"><input type="checkbox" name="ids" value={e.id} form="asignar" defaultChecked={!dup} className="h-4 w-4" /></td>
+                              <td className="py-2 font-medium tabular-nums text-marca">{e.cedula ?? FALTA}</td>
+                              <td className="py-2">
+                                <Link href={`/panel/gestion/estudiantes/${e.id}?curso=sin`} className="font-medium text-marca hover:underline">{e.apellidos} {e.nombres}</Link>
+                              </td>
+                              <td className="py-2 text-xs text-amber-700">
+                                {dup && <>Posible ficha repetida: ya está en {nombreCurso(cursoDe.get(dup.id))}{dup.cedula ? ` con C.I. ${dup.cedula}` : ""}.</>}
+                              </td>
+                              <td className="py-2 text-right">
+                                {editor && (
+                                  <form action={borrarFicha}>
+                                    <input type="hidden" name="id" value={e.id} />
+                                    <BotonConfirmar pregunta="¿Borrar esta ficha para siempre?">Borrar ficha</BotonConfirmar>
+                                  </form>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </section>
+          ) : (
 
           <div className="grid gap-6">
             <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -79,26 +155,29 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
               </div>
 
               <div className="mt-4 overflow-x-auto">
-                <table className="w-full min-w-[680px] text-left text-sm">
+                <table className="w-full min-w-[760px] table-fixed text-left text-sm">
+                  <colgroup>
+                    <col className="w-12" /><col className="w-28" /><col /><col className="w-[30%]" /><col className="w-28" /><col className="w-16" />
+                  </colgroup>
                   <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
-                    <tr><th className="py-2 pr-2">N.º</th><th>Cédula</th><th>Apellidos y nombres</th><th>Representante</th><th>Celular repr.</th><th></th></tr>
+                    <tr><th className="py-2 pr-2">N.º</th><th className="pr-3">Cédula</th><th className="pr-3">Apellidos y nombres</th><th className="pr-3">Representante</th><th className="pr-3">Celular repr.</th><th></th></tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {nomina.map((f) => {
                       const e = f.estudiantes!;
                       const r = e.familiares.find((x) => x.tipo === "representante") ?? e.familiares.find((x) => x.tipo === "madre") ?? e.familiares[0];
                       return (
-                        <tr key={e.id} className={f.retirado ? "opacity-50" : "hover:bg-marca-50/50"}>
-                          <td className="py-2 pr-2 font-medium text-marca">{f.numero_lista}</td>
-                          <td className="py-2 font-medium text-marca">{e.cedula ?? <span className="text-amber-600">Falta</span>}</td>
-                          <td className="py-2">
+                        <tr key={e.id} className={`align-middle ${f.retirado ? "opacity-50" : "hover:bg-marca-50/50"}`}>
+                          <td className="py-2 pr-2 font-medium tabular-nums text-marca">{f.numero_lista}</td>
+                          <td className="py-2 pr-3 font-medium tabular-nums text-marca">{e.cedula ?? FALTA}</td>
+                          <td className="py-2 pr-3 leading-snug">
                             <Link href={`/panel/gestion/estudiantes/${e.id}?curso=${actual.id}`} className="font-medium text-marca hover:underline">
                               {e.apellidos} {e.nombres}
                             </Link>
                             {f.retirado && <span className="ml-2 rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Retirado</span>}
                           </td>
-                          <td className="py-2">{r ? `${r.apellidos ?? ""} ${r.nombres ?? ""}` : <span className="text-amber-600">Falta</span>}</td>
-                          <td className="py-2">{r?.celular ?? "—"}</td>
+                          <td className="py-2 pr-3 leading-snug">{r ? `${r.apellidos ?? ""} ${r.nombres ?? ""}` : FALTA}</td>
+                          <td className="py-2 pr-3 tabular-nums">{r?.celular ?? FALTA}</td>
                           <td className="py-2 text-right">
                             {editor && (
                               <details className="inline-block text-left">
@@ -179,6 +258,7 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
               </section>
             )}
           </div>
+          )}
         </div>
       )}
     </main>

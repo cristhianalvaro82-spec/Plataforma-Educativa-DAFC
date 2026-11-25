@@ -68,7 +68,7 @@ export function encabezadosPlantilla() {
 
 // ---------- Lectura de la nómina ----------
 
-const sinTildes = (s: string) => (s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+export const sinTildes = (s: string) => (s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 
 const PALABRAS: Record<string, RegExp> = {
   cedula: /c[eé]dula|identificaci[oó]n$|^ci$|documento|dni|pasaporte/,
@@ -199,3 +199,6 @@ export function interpretarNomina(filas: string[][]): { registros: FilaEstudiant
 
 /** Depósito privado de fotos tamaño carné (ver 0006_fotos.sql). */
 export const BUCKET_FOTOS = "fotos-estudiantes";
+
+/** Clave para reconocer a la misma persona aunque cambien tildes, espacios o mayúsculas. */
+export const claveNombre = (apellidos: string, nombres: string) => `${sinTildes(apellidos)}|${sinTildes(nombres)}`;

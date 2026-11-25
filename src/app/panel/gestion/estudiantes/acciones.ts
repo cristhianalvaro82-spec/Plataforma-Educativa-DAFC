@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { contextoGestion, explicar, volver } from "@/lib/datos/gestion";
-import { EDITORES } from "@/lib/datos/estudiantes";
+import { BUCKET_FOTOS, EDITORES, claveNombre } from "@/lib/datos/estudiantes";
 import { leerFilas } from "@/lib/excel";
 import {
   CAMPOS_ESTUDIANTE, TIPOS, camposDe, interpretarNomina, normalizarCedula, normalizarFecha, normalizarSexo, type Tipo,
@@ -77,9 +77,9 @@ export async function importarNomina(f: FormData) {
   const { data: existentes, error: e0 } = await supabase.from("estudiantes").select("id, cedula, apellidos, nombres").eq("institucion_id", inst.id);
   if (e0) volver(ruta, "error", explicar(e0.message));
   const porCedula = new Map((existentes ?? []).filter((x) => x.cedula).map((x) => [x.cedula as string, x.id as string]));
-  const porNombre = new Map((existentes ?? []).map((x) => [`${x.apellidos}|${x.nombres}`, x.id as string]));
+  const porNombre = new Map((existentes ?? []).map((x) => [claveNombre(x.apellidos, x.nombres), x.id as string]));
   const buscar = (fila: ReturnType<typeof filaEstudiante>) =>
-    (fila.cedula && porCedula.get(fila.cedula)) || porNombre.get(`${fila.apellidos}|${fila.nombres}`);
+    (fila.cedula && porCedula.get(fila.cedula)) || porNombre.get(claveNombre(fila.apellidos, fila.nombres));
 
   // Quiénes están hoy en el curso.
   const { data: yaMatriculados } = await supabase.from("matriculas")
@@ -117,7 +117,7 @@ export async function importarNomina(f: FormData) {
       if (error || !data) { fallidos.push(`${quien} (${explicar(error?.message ?? "sin respuesta")})`); continue; }
       estudianteId = data.id;
       if (fila.cedula) porCedula.set(fila.cedula, estudianteId!);
-      porNombre.set(`${fila.apellidos}|${fila.nombres}`, estudianteId!);
+      porNombre.set(claveNombre(fila.apellidos, fila.nombres), estudianteId!);
       nuevos++;
     }
     ids.push({ id: estudianteId!, apellidos: fila.apellidos, nombres: fila.nombres });
@@ -223,6 +223,48 @@ export async function quitarDelCurso(f: FormData) {
   const curso = texto(f, "curso");
   const { error } = await supabase.from("matriculas").delete().eq("curso_id", curso).eq("estudiante_id", texto(f, "id"));
   if (error) volver(`${RUTA}?curso=${curso}`, "error", explicar(error.message));
+  await renumerar(supabase, curso);
   revalidatePath(RUTA);
-  volver(`${RUTA}?curso=${curso}`, "ok", "Estudiante quitado del curso. Su ficha sigue guardada.");
+  volver(`${RUTA}?curso=${curso}`, "ok", "Estudiante quitado del curso. Su ficha quedó en \"Sin curso\".");
+}
+
+/** Vuelve a numerar la lista de un curso en orden alfabético. */
+async function renumerar(supabase: Awaited<ReturnType<typeof contextoGestion>>["supabase"], curso: string) {
+  const { data } = await supabase.from("matriculas").select("estudiante_id, estudiantes(apellidos, nombres)").eq("curso_id", curso);
+  type M = { estudiante_id: string; estudiantes: { apellidos: string; nombres: string } | null };
+  const orden = ((data ?? []) as unknown as M[])
+    .sort((a, b) => `${a.estudiantes?.apellidos} ${a.estudiantes?.nombres}`.localeCompare(`${b.estudiantes?.apellidos} ${b.estudiantes?.nombres}`, "es"));
+  if (orden.length) await supabase.from("matriculas").upsert(
+    orden.map((m, i) => ({ estudiante_id: m.estudiante_id, curso_id: curso, numero_lista: i + 1 })), { onConflict: "estudiante_id,curso_id" });
+}
+
+/** Pasa a un curso a los estudiantes marcados en "Sin curso". */
+export async function asignarCurso(f: FormData) {
+  const { supabase } = await contextoGestion(EDITORES);
+  const ruta = `${RUTA}?curso=sin`;
+  const curso = texto(f, "destino");
+  const ids = f.getAll("ids").map(String).filter(Boolean);
+  if (!curso) volver(ruta, "error", "Elige el curso al que los vas a pasar.");
+  if (!ids.length) volver(ruta, "error", "Marca al menos un estudiante.");
+  const { error } = await supabase.from("matriculas").upsert(ids.map((estudiante_id) => ({ estudiante_id, curso_id: curso })),
+    { onConflict: "estudiante_id,curso_id", ignoreDuplicates: true });
+  if (error) volver(ruta, "error", explicar(error.message));
+  await renumerar(supabase, curso);
+  revalidatePath(RUTA);
+  volver(`${RUTA}?curso=${curso}`, "ok", `${ids.length} ${ids.length === 1 ? "estudiante pasó" : "estudiantes pasaron"} a este curso.`);
+}
+
+/** Borra para siempre la ficha de un estudiante que no está en ningún curso. */
+export async function borrarFicha(f: FormData) {
+  const { supabase } = await contextoGestion(EDITORES);
+  const ruta = `${RUTA}?curso=sin`;
+  const id = texto(f, "id");
+  const { count } = await supabase.from("matriculas").select("*", { count: "exact", head: true }).eq("estudiante_id", id);
+  if (count) volver(ruta, "error", "Ese estudiante está en un curso. Primero quítalo del curso.");
+  const { data: e } = await supabase.from("estudiantes").select("foto_path").eq("id", id).maybeSingle();
+  const { error } = await supabase.from("estudiantes").delete().eq("id", id);
+  if (error) volver(ruta, "error", explicar(error.message));
+  if (e?.foto_path) await supabase.storage.from(BUCKET_FOTOS).remove([e.foto_path as string]);
+  revalidatePath(RUTA);
+  volver(ruta, "ok", "Ficha borrada.");
 }
