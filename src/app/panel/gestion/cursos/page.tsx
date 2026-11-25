@@ -3,7 +3,7 @@ import { FIGURAS, GRADOS, JORNADAS, NOMBRE_SUBNIVEL } from "@/lib/datos/catalogo
 import Mensajes, { Cabecera, entrada, botonPrincipal, botonSecundario, tarjeta } from "../Mensajes";
 import BotonConfirmar from "../BotonConfirmar";
 import {
-  activarAnio, borrarAsignatura, guardarFechasAnio, importarAsignaturas, borrarCurso, cargarAsignaturasBase, crearAnio, crearAsignatura, crearCursos, guardarCurso,
+  activarAnio, borrarAnio, borrarAsignatura, guardarFechasAnio, importarAsignaturas, borrarCurso, cargarAsignaturasBase, crearAnio, crearAsignatura, crearCursos, guardarCurso,
 } from "./acciones";
 
 export const dynamic = "force-dynamic";
@@ -69,10 +69,16 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
           <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-600">
             Otros años:
             {otrosAnios.map((a) => (
-              <form key={a.id} action={activarAnio}>
-                <input type="hidden" name="id" value={a.id} />
-                <button className={botonSecundario}>Activar {a.nombre}</button>
-              </form>
+              <span key={a.id} className="flex items-center gap-2 rounded-lg border border-slate-200 px-2 py-1">
+                <form action={activarAnio}>
+                  <input type="hidden" name="id" value={a.id} />
+                  <button className={botonSecundario}>Activar {a.nombre}</button>
+                </form>
+                <form action={borrarAnio}>
+                  <input type="hidden" name="id" value={a.id} />
+                  <BotonConfirmar pregunta={`¿Borrar ${a.nombre}?`}>Borrar</BotonConfirmar>
+                </form>
+              </span>
             ))}
           </div>
         )}

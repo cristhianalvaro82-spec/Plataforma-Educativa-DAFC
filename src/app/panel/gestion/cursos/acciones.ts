@@ -13,6 +13,8 @@ export async function crearAnio(f: FormData) {
   const { supabase, inst } = await contextoGestion(GESTORES);
   const nombre = texto(f, "nombre");
   if (!nombre) volver(RUTA, "error", "Escribe el nombre del año lectivo, por ejemplo 2026-2027.");
+  const { data: mismo } = await supabase.from("anios_lectivos").select("id").eq("institucion_id", inst.id).ilike("nombre", nombre).maybeSingle();
+  if (mismo) volver(RUTA, "error", `El año lectivo ${nombre} ya existe. Si no está activo, usa su botón "Activar".`);
   await supabase.from("anios_lectivos").update({ activo: false }).eq("institucion_id", inst.id);
   const { error } = await supabase.from("anios_lectivos").insert({
     institucion_id: inst.id, nombre, activo: true,
@@ -147,4 +149,16 @@ export async function guardarFechasAnio(f: FormData) {
   if (error) volver(RUTA, "error", explicar(error.message));
   revalidatePath(RUTA);
   volver(RUTA, "ok", "Fechas del año lectivo guardadas.");
+}
+
+/** Borra un año lectivo que no está activo y no tiene cursos (por ejemplo, uno creado dos veces). */
+export async function borrarAnio(f: FormData) {
+  const { supabase } = await contextoGestion(GESTORES);
+  const id = texto(f, "id");
+  const { count } = await supabase.from("cursos").select("*", { count: "exact", head: true }).eq("anio_lectivo_id", id);
+  if (count) volver(RUTA, "error", "Ese año lectivo tiene cursos; no se puede borrar.");
+  const { error } = await supabase.from("anios_lectivos").delete().eq("id", id).eq("activo", false);
+  if (error) volver(RUTA, "error", explicar(error.message));
+  revalidatePath(RUTA);
+  volver(RUTA, "ok", "Año lectivo repetido borrado.");
 }
