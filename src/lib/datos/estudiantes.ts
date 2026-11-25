@@ -123,18 +123,21 @@ export function normalizarCedula(c: string) {
   return /^\d{9}$/.test(d) ? "0" + d : d; // Excel suele borrar el 0 inicial
 }
 
+/** Devuelve la fecha como AAAA-MM-DD solo si existe de verdad (0000-00-00 y similares → vacía). */
 export function normalizarFecha(v: string): string | null {
   const t = v.trim();
   if (!t) return null;
-  let m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
-  m = t.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);
-  if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
-  if (/^\d{5}$/.test(t)) { // número de serie de Excel
-    const d = new Date(Date.UTC(1899, 11, 30) + Number(t) * 86400000);
-    return d.toISOString().slice(0, 10);
-  }
-  return null;
+  let a = 0, m = 0, d = 0;
+  let x = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (x) [a, m, d] = [+x[1], +x[2], +x[3]];
+  else if ((x = t.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/))) [a, m, d] = [+x[3], +x[2], +x[1]];
+  else if (/^\d{5}$/.test(t)) { // número de serie de Excel
+    const f = new Date(Date.UTC(1899, 11, 30) + Number(t) * 86400000);
+    [a, m, d] = [f.getUTCFullYear(), f.getUTCMonth() + 1, f.getUTCDate()];
+  } else return null;
+  const f = new Date(Date.UTC(a, m - 1, d));
+  if (a < 1900 || a > 2100 || f.getUTCMonth() !== m - 1 || f.getUTCDate() !== d) return null;
+  return `${a}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
 export function normalizarSexo(v: string) {

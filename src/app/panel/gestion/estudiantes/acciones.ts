@@ -70,6 +70,8 @@ export async function importarNomina(f: FormData) {
   const porNombre = new Map((existentes ?? []).map((x) => [`${x.apellidos}|${x.nombres}`, x.id as string]));
 
   let nuevos = 0, actualizados = 0;
+  // Un error en un estudiante no detiene a los demás: se anota y se sigue.
+  const fallidos: string[] = [];
   const ids: { id: string; apellidos: string; nombres: string }[] = [];
   for (const r of registros) {
     const fila = filaEstudiante(r.estudiante);
@@ -78,14 +80,15 @@ export async function importarNomina(f: FormData) {
       v !== null || ["apellidos", "nombres"].includes(k))) as Record<string, unknown>;
     const id = (fila.cedula && porCedula.get(fila.cedula)) || porNombre.get(`${fila.apellidos}|${fila.nombres}`);
     let estudianteId = id;
+    const quien = `${fila.apellidos} ${fila.nombres}`;
     if (id) {
       const { error } = await supabase.from("estudiantes").update(datos).eq("id", id);
-      if (error) volver(ruta, "error", `${fila.apellidos} ${fila.nombres}: ${explicar(error.message)}`);
+      if (error) { fallidos.push(`${quien} (${explicar(error.message)})`); continue; }
       actualizados++;
     } else {
       const { data, error } = await supabase.from("estudiantes").insert({ ...datos, institucion_id: inst.id }).select("id").single();
-      if (error) volver(ruta, "error", `${fila.apellidos} ${fila.nombres}: ${explicar(error.message)}`);
-      estudianteId = data!.id;
+      if (error || !data) { fallidos.push(`${quien} (${explicar(error?.message ?? "sin respuesta")})`); continue; }
+      estudianteId = data.id;
       if (fila.cedula) porCedula.set(fila.cedula, estudianteId!);
       porNombre.set(`${fila.apellidos}|${fila.nombres}`, estudianteId!);
       nuevos++;
@@ -96,7 +99,7 @@ export async function importarNomina(f: FormData) {
       .map((t) => ({ ...filaFamiliar(t, r.familiares[t]!), estudiante_id: estudianteId }));
     if (familiares.length) {
       const { error } = await supabase.from("familiares").upsert(familiares, { onConflict: "estudiante_id,tipo" });
-      if (error) volver(ruta, "error", `Familiares de ${fila.apellidos}: ${explicar(error.message)}`);
+      if (error) fallidos.push(`${quien}: datos de familiares (${explicar(error.message)})`);
     }
   }
 
@@ -114,7 +117,9 @@ export async function importarNomina(f: FormData) {
   if (eM) volver(ruta, "error", explicar(eM.message));
 
   revalidatePath(RUTA);
-  volver(ruta, "ok", `Nómina importada: ${nuevos} estudiantes nuevos y ${actualizados} actualizados.`);
+  const resumen = `Nómina importada: ${nuevos} estudiantes nuevos y ${actualizados} actualizados.`;
+  if (fallidos.length) volver(ruta, "error", `${resumen} Revisa ${fallidos.length === 1 ? "este caso" : `estos ${fallidos.length} casos`}: ${fallidos.join("; ")}.`);
+  volver(ruta, "ok", resumen);
 }
 
 /** Agrega un estudiante a mano y abre su ficha. */
