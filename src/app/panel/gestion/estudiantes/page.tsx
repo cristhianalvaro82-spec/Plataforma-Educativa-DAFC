@@ -104,21 +104,25 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
                     <button className={botonPrincipal} disabled={!editor}>Pasar al curso</button>
                   </form>
                   <div className="mt-3 overflow-x-auto">
-                    <table className="w-full min-w-[640px] text-left text-sm">
+                    <table className="w-full min-w-[760px] table-fixed text-left text-sm">
+                      <colgroup>
+                        <col className="w-16" /><col className="w-12" /><col className="w-28" /><col /><col className="w-[30%]" /><col className="w-28" />
+                      </colgroup>
                       <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
-                        <tr><th className="py-2 pr-2">Marcar</th><th>Cédula</th><th>Apellidos y nombres</th><th>Aviso</th><th></th></tr>
+                        <tr><th className="py-2 pr-2">Marcar</th><th className="pr-2">N.º</th><th className="pr-3">Cédula</th><th className="pr-3">Apellidos y nombres</th><th className="pr-3">Aviso</th><th></th></tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {sinCurso.map((e) => {
+                        {sinCurso.map((e, i) => {
                           const dup = conCurso.get(claveNombre(e.apellidos, e.nombres));
                           return (
-                            <tr key={e.id} className="hover:bg-marca-50/50">
-                              <td className="py-2 pr-2"><input type="checkbox" name="ids" value={e.id} form="asignar" defaultChecked={!dup} className="h-4 w-4" /></td>
-                              <td className="py-2 font-medium tabular-nums text-marca">{e.cedula ?? FALTA}</td>
-                              <td className="py-2">
+                            <tr key={e.id} className="align-middle hover:bg-marca-50/50">
+                              <td className="py-2 pr-2"><input type="checkbox" name="ids" value={e.id} form="asignar" defaultChecked={!dup} className="h-4 w-4 cursor-pointer align-middle" /></td>
+                              <td className="py-2 pr-2 font-medium tabular-nums text-marca">{i + 1}</td>
+                              <td className="py-2 pr-3 font-medium tabular-nums text-marca">{e.cedula ?? FALTA}</td>
+                              <td className="py-2 pr-3 leading-snug">
                                 <Link href={`/panel/gestion/estudiantes/${e.id}?curso=sin`} className="font-medium text-marca hover:underline">{e.apellidos} {e.nombres}</Link>
                               </td>
-                              <td className="py-2 text-xs text-amber-700">
+                              <td className="py-2 pr-3 text-xs leading-snug text-amber-700">
                                 {dup && <>Posible ficha repetida: ya está en {nombreCurso(cursoDe.get(dup.id))}{dup.cedula ? ` con C.I. ${dup.cedula}` : ""}.</>}
                               </td>
                               <td className="py-2 text-right">
