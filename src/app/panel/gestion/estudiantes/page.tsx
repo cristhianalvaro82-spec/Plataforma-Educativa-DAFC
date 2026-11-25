@@ -88,9 +88,9 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
                       const e = f.estudiantes!;
                       const r = e.familiares.find((x) => x.tipo === "representante") ?? e.familiares.find((x) => x.tipo === "madre") ?? e.familiares[0];
                       return (
-                        <tr key={e.id} className={f.retirado ? "text-slate-400" : ""}>
-                          <td className="py-2 pr-2">{f.numero_lista}</td>
-                          <td className="py-2">{e.cedula ?? <span className="text-amber-600">Falta</span>}</td>
+                        <tr key={e.id} className={f.retirado ? "opacity-50" : "hover:bg-marca-50/50"}>
+                          <td className="py-2 pr-2 font-medium text-marca">{f.numero_lista}</td>
+                          <td className="py-2 font-medium text-marca">{e.cedula ?? <span className="text-amber-600">Falta</span>}</td>
                           <td className="py-2">
                             <Link href={`/panel/gestion/estudiantes/${e.id}?curso=${actual.id}`} className="font-medium text-marca hover:underline">
                               {e.apellidos} {e.nombres}
