@@ -96,7 +96,7 @@ export default function FormularioInstitucion(props: {
           </div>
           <label className="text-sm text-slate-700">
             Logo (PNG o JPG)
-            <input disabled={d} type="file" accept="image/png,image/jpeg" className="mt-1 block text-sm"
+            <input disabled={d} type="file" accept="image/png,image/jpeg" className="mt-1 block text-sm text-slate-600 file:mr-3 file:cursor-pointer file:rounded-lg file:border-2 file:border-dashed file:border-marca-200 file:bg-marca-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-marca hover:file:border-marca hover:file:bg-marca hover:file:text-white"
               onChange={(e) => { const f = e.target.files?.[0] ?? null; setLogo(f); if (f) setVistaLogo(URL.createObjectURL(f)); }} />
           </label>
           <label className="flex items-center gap-3 text-sm text-slate-700">

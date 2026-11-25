@@ -12,7 +12,7 @@ export async function leerFilas(archivo: File | null, pegado: string): Promise<s
     // Solo la primera hoja: las demás pueden tener tablas de referencia.
     const hoja = libro.worksheets[0];
     hoja?.eachRow({ includeEmpty: false }, (fila) => {
-      const valores = (fila.values as unknown[]).slice(1).map(textoCelda);
+      const valores = Array.from(fila.values as unknown[]).slice(1).map(textoCelda);
       if (valores.some(Boolean)) filas.push(valores);
     });
     return filas;

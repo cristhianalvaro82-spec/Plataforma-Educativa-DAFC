@@ -2,7 +2,7 @@ import Link from "next/link";
 import { contextoGestion } from "@/lib/datos/gestion";
 import { GRADOS } from "@/lib/datos/catalogos";
 import { EDITORES, LECTORES } from "@/lib/datos/estudiantes";
-import Mensajes, { Cabecera, entrada, botonPrincipal, botonSecundario, tarjeta } from "../Mensajes";
+import Mensajes, { Cabecera, archivo, entrada, botonPrincipal, botonSecundario, tarjeta } from "../Mensajes";
 import BotonConfirmar from "../BotonConfirmar";
 import { agregarEstudiante, cambiarRetiro, importarNomina, quitarDelCurso } from "./acciones";
 
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 type Curso = { id: string; grado: string; paralelo: string; jornada: string; especialidad: string | null };
 type Fila = {
   numero_lista: number | null; retirado: boolean;
-  estudiantes: { id: string; cedula: string | null; apellidos: string; nombres: string; celular: string | null;
+  estudiantes: { id: string; cedula: string | null; apellidos: string; nombres: string; celular: string | null; correo: string | null;
     familiares: { tipo: string; apellidos: string | null; nombres: string | null; celular: string | null }[] } | null;
 };
 
@@ -31,7 +31,7 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
 
   const { data: filas } = actual
     ? await supabase.from("matriculas")
-        .select("numero_lista, retirado, estudiantes(id, cedula, apellidos, nombres, celular, familiares(tipo, apellidos, nombres, celular))")
+        .select("numero_lista, retirado, estudiantes(id, cedula, apellidos, nombres, celular, correo, familiares(tipo, apellidos, nombres, celular))")
         .eq("curso_id", actual.id).order("numero_lista")
     : { data: [] };
   const filtro = (q ?? "").trim().toLowerCase();
@@ -81,7 +81,7 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full min-w-[680px] text-left text-sm">
                   <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
-                    <tr><th className="py-2 pr-2">N.º</th><th>Estudiante</th><th>Cédula</th><th>Representante</th><th>Celular repr.</th><th></th></tr>
+                    <tr><th className="py-2 pr-2">N.º</th><th>Cédula</th><th>Apellidos y nombres</th><th>Representante</th><th>Celular repr.</th><th></th></tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {nomina.map((f) => {
@@ -90,13 +90,13 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
                       return (
                         <tr key={e.id} className={f.retirado ? "text-slate-400" : ""}>
                           <td className="py-2 pr-2">{f.numero_lista}</td>
+                          <td className="py-2">{e.cedula ?? <span className="text-amber-600">Falta</span>}</td>
                           <td className="py-2">
                             <Link href={`/panel/gestion/estudiantes/${e.id}?curso=${actual.id}`} className="font-medium text-marca hover:underline">
                               {e.apellidos} {e.nombres}
                             </Link>
                             {f.retirado && <span className="ml-2 rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Retirado</span>}
                           </td>
-                          <td className="py-2">{e.cedula ?? <span className="text-amber-600">Falta</span>}</td>
                           <td className="py-2">{r ? `${r.apellidos ?? ""} ${r.nombres ?? ""}` : <span className="text-amber-600">Falta</span>}</td>
                           <td className="py-2">{r?.celular ?? "—"}</td>
                           <td className="py-2 text-right">
@@ -137,12 +137,12 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
                 <h2 className="font-semibold text-slate-900">Cargar la nómina desde Excel</h2>
                 <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-600">
                   <li>Descarga la <a download href="/panel/gestion/estudiantes/plantilla" className="font-medium text-marca underline">plantilla vacía</a> (o una <a download href="/panel/gestion/estudiantes/plantilla?ejemplo=1" className="font-medium text-marca underline">nómina de ejemplo ficticia</a> para practicar).</li>
-                  <li>Llénala con una fila por estudiante. También sirve el Excel de la ficha de Sistema Orozco.</li>
+                  <li>Llénala con una fila por estudiante. También sirve la <b>nómina que descarga el Ministerio</b> (No., Cédula, Nombres completos, Cuenta) o el Excel de la ficha de Sistema Orozco.</li>
                   <li>Súbela aquí. Si un estudiante ya existe (misma cédula), se actualiza; no se duplica.</li>
                 </ol>
                 <form action={importarNomina} className="mt-4 flex flex-wrap items-center gap-3">
                   <input type="hidden" name="curso" value={actual.id} />
-                  <input type="file" name="archivo" accept=".xlsx,.csv" required className="text-sm" />
+                  <input type="file" name="archivo" accept=".xlsx,.csv" required className={archivo} />
                   <button className={botonPrincipal}>Importar a {actual.grado} &ldquo;{actual.paralelo}&rdquo;</button>
                 </form>
 

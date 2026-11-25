@@ -1,6 +1,6 @@
 import { contextoGestion } from "@/lib/datos/gestion";
 import { FIGURAS, GRADOS, JORNADAS, NOMBRE_SUBNIVEL } from "@/lib/datos/catalogos";
-import Mensajes, { Cabecera, entrada, botonPrincipal, botonSecundario, tarjeta } from "../Mensajes";
+import Mensajes, { Cabecera, archivo, entrada, botonPrincipal, botonSecundario, tarjeta } from "../Mensajes";
 import BotonConfirmar from "../BotonConfirmar";
 import {
   activarAnio, borrarAnio, borrarAsignatura, guardarFechasAnio, importarAsignaturas, borrarCurso, cargarAsignaturasBase, crearAnio, crearAsignatura, crearCursos, guardarCurso,
@@ -174,7 +174,7 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
           </p>
           <form action={importarAsignaturas} className="mt-3 grid gap-3">
             <label className="grid gap-1 text-sm text-slate-700">Subir archivo Excel (.xlsx) o CSV
-              <input type="file" name="archivo" accept=".xlsx,.csv" className="text-sm" />
+              <input type="file" name="archivo" accept=".xlsx,.csv" className={archivo} />
             </label>
             <label className="grid gap-1 text-sm text-slate-700">…o copia las celdas en Excel y pégalas aquí
               <textarea name="pegado" rows={4} placeholder={"Mecánica Básica\tElectromecánica Automotriz\nContabilidad General\tGestión Administrativa y Logística"} className={entrada} />

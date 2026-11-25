@@ -27,3 +27,7 @@ body.marcas-agua {
   background-size: 520px 520px;
   background-attachment: fixed;
 }
+
+/* Todo lo que se puede pulsar muestra la "manito" al pasar el mouse. */
+button, summary, select, label:has(input[type="checkbox"]), input[type="file"], input[type="checkbox"], input[type="date"] { cursor: pointer; }
+button:disabled { cursor: not-allowed; }

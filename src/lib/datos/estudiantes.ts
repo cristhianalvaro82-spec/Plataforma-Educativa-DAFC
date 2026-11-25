@@ -68,11 +68,11 @@ export function encabezadosPlantilla() {
 
 // ---------- Lectura de la nómina ----------
 
-const sinTildes = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+const sinTildes = (s: string) => (s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 
 const PALABRAS: Record<string, RegExp> = {
   cedula: /c[eé]dula|identificaci[oó]n$|^ci$|documento|dni|pasaporte/,
-  apellidos_nombres: /apellidos? y nombres?|nombres? y apellidos?|nombre completo|estudiante$/,
+  apellidos_nombres: /apellidos? y nombres?|nombres? y apellidos?|nombres? completos?|estudiante$/,
   apellidos: /apellido/,
   nombres: /nombre/,
   sexo: /sexo|g[eé]nero/,
@@ -87,7 +87,7 @@ const PALABRAS: Record<string, RegExp> = {
   direccion_trabajo: /trabajo/,
   direccion: /direcci[oó]n|domicilio/,
   celular: /celular|tel[eé]fono|m[oó]vil/,
-  correo: /correo|e-?mail/,
+  correo: /correo|e-?mail|cuenta/,
   parentesco: /parentesco|relaci[oó]n/,
   escolaridad: /escolaridad|instrucci[oó]n|estudios/,
   ocupacion: /ocupaci[oó]n|profesi[oó]n/,
@@ -168,8 +168,12 @@ export function interpretarNomina(filas: string[][]): { registros: FilaEstudiant
     return m;
   });
 
+  // Columna "No." (como en la nómina del Ministerio): si existe, solo cuentan las filas numeradas,
+  // así se ignoran pies de página como "Transformar la educación...".
+  const iNumero = filas[iEnc].findIndex((c) => /^(no|n|nro|num|n[°º])\.?$/.test(sinTildes(c).replace(/\s/g, "")));
   const registros: FilaEstudiante[] = [];
   for (const fila of filas.slice(iEnc + 1)) {
+    if (iNumero >= 0 && !/^\d+$/.test((fila[iNumero] ?? "").trim())) continue;
     const r: FilaEstudiante = { estudiante: {}, familiares: {} };
     columnas.forEach((col, i) => {
       const v = (fila[i] ?? "").trim();
