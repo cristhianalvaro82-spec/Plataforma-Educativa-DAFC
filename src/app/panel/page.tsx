@@ -114,14 +114,21 @@ export default async function PanelPage({ searchParams }: { searchParams: Promis
                   </Link>
                 </li>
               </ol>
+              {!i.roles.includes("administrador") && i.roles.some((r) => ["inspeccion", "dece", "vicerrectorado", "autoridad"].includes(r)) && (
+                <Link href="/panel/gestion/estudiantes" className="mt-5 block rounded-lg border border-marca-200 bg-white px-3 py-3 hover:bg-marca-50">
+                  <span className="block text-sm font-semibold text-marca">Estudiantes</span>
+                  <span className="block text-xs text-slate-500">Nóminas por curso y fichas</span>
+                </Link>
+              )}
               {i.roles.includes("administrador") && (
                 <>
                   <h3 className="mt-5 text-sm font-semibold text-slate-800">Gestión de la institución</h3>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                     {[
                       ["/panel/gestion/docentes", "Docentes", "Invitar, roles, nombres y estado"],
                       ["/panel/gestion/cursos", "Cursos y asignaturas", "Año lectivo, paralelos y materias"],
                       ["/panel/gestion/distribucion", "Distribución", "Qué docente da cada asignatura"],
+                      ["/panel/gestion/estudiantes", "Estudiantes", "Nóminas por curso y fichas"],
                     ].map(([href, titulo, texto]) => (
                       <Link key={href} href={href} className="rounded-lg border border-marca-200 bg-white px-3 py-3 hover:bg-marca-50">
                         <span className="block text-sm font-semibold text-marca">{titulo}</span>

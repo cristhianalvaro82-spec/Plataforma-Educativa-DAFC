@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Mensajes({ ok, error }: { ok?: string; error?: string }) {
   return (
     <>
@@ -11,10 +13,11 @@ export function Cabecera({ titulo, texto }: { titulo: string; texto: string }) {
   return (
     <>
       <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-        <a href="/panel" className="text-marca hover:underline">← Panel</a>
-        <a href="/panel/gestion/docentes" className="text-slate-600 hover:text-marca">Docentes</a>
-        <a href="/panel/gestion/cursos" className="text-slate-600 hover:text-marca">Cursos y asignaturas</a>
-        <a href="/panel/gestion/distribucion" className="text-slate-600 hover:text-marca">Distribución</a>
+        <Link href="/panel" className="text-marca hover:underline">← Panel</Link>
+        <Link href="/panel/gestion/docentes" className="text-slate-600 hover:text-marca">Docentes</Link>
+        <Link href="/panel/gestion/cursos" className="text-slate-600 hover:text-marca">Cursos y asignaturas</Link>
+        <Link href="/panel/gestion/distribucion" className="text-slate-600 hover:text-marca">Distribución</Link>
+        <Link href="/panel/gestion/estudiantes" className="text-slate-600 hover:text-marca">Estudiantes</Link>
       </nav>
       <h1 className="mt-3 text-2xl font-bold text-slate-900">{titulo}</h1>
       <p className="mt-1 text-slate-600">{texto}</p>
