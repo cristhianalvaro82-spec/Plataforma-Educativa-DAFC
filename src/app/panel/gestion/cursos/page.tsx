@@ -163,7 +163,7 @@ export default async function CursosPage({ searchParams }: { searchParams: Promi
         <details className="mt-4 rounded-lg border border-dashed border-marca-200 bg-marca-50/40 px-4 py-3">
           <summary className="cursor-pointer text-sm font-medium text-marca">Importar muchas asignaturas desde Excel</summary>
           <p className="mt-2 text-sm text-slate-600">
-            En la <b>primera columna</b> va el nombre de la asignatura o módulo; en la <b>segunda</b> (opcional), el área o la figura profesional.
+            En la <b>primera columna</b> va el nombre de la asignatura o módulo; en la <b>segunda</b> (opcional), el área o la figura profesional. Se lee solo la primera hoja del Excel.
             Las que ya existen no se repiten.
           </p>
           <form action={importarAsignaturas} className="mt-3 grid gap-3">

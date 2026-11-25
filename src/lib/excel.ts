@@ -9,12 +9,12 @@ export async function leerFilas(archivo: File | null, pegado: string): Promise<s
     const libro = new ExcelJS.Workbook();
     await libro.xlsx.load(await archivo.arrayBuffer());
     const filas: string[][] = [];
-    for (const hoja of libro.worksheets) {
-      hoja.eachRow({ includeEmpty: false }, (fila) => {
-        const valores = (fila.values as unknown[]).slice(1).map(textoCelda);
-        if (valores.some(Boolean)) filas.push(valores);
-      });
-    }
+    // Solo la primera hoja: las demás pueden tener tablas de referencia.
+    const hoja = libro.worksheets[0];
+    hoja?.eachRow({ includeEmpty: false }, (fila) => {
+      const valores = (fila.values as unknown[]).slice(1).map(textoCelda);
+      if (valores.some(Boolean)) filas.push(valores);
+    });
     return filas;
   }
   return filasDeTexto(pegado);
