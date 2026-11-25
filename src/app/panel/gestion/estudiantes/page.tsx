@@ -138,11 +138,11 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
                 <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-600">
                   <li>Descarga la <a download href="/panel/gestion/estudiantes/plantilla" className="font-medium text-marca underline">plantilla vacía</a> (o una <a download href="/panel/gestion/estudiantes/plantilla?ejemplo=1" className="font-medium text-marca underline">nómina de ejemplo ficticia</a> para practicar).</li>
                   <li>Llénala con una fila por estudiante. También sirve la <b>nómina que descarga el Ministerio</b> (No., Cédula, Nombres completos, Cuenta) o el Excel de la ficha de Sistema Orozco.</li>
-                  <li>Súbela aquí. Si un estudiante ya existe (misma cédula), se actualiza; no se duplica.</li>
+                  <li>Súbela aquí. Si un estudiante ya existe (misma cédula), se actualiza; no se duplica. Así puedes subir primero la nómina del Ministerio y luego el Excel de fichas de Orozco (.xls) para completar madre, padre y representante.</li>
                 </ol>
                 <form action={importarNomina} className="mt-4 flex flex-wrap items-center gap-3">
                   <input type="hidden" name="curso" value={actual.id} />
-                  <input type="file" name="archivo" accept=".xlsx,.csv" required className={archivo} />
+                  <input type="file" name="archivo" accept=".xlsx,.xls,.csv" required className={archivo} />
                   <button className={botonPrincipal}>Importar a {actual.grado} &ldquo;{actual.paralelo}&rdquo;</button>
                 </form>
 

@@ -53,7 +53,13 @@ export default async function FichaPage({ params, searchParams }: {
     <main className="mx-auto max-w-5xl px-4 py-8">
       <Link href={volverA} className="text-sm text-marca hover:underline">← Volver a la nómina</Link>
       <h1 className="mt-2 text-2xl font-bold text-slate-900">{v(est.apellidos)} {v(est.nombres)}</h1>
-      <p className="text-sm text-slate-500">Ficha del estudiante{est.cedula ? ` · C.I. ${v(est.cedula)}` : ""}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-slate-500">Ficha del estudiante{est.cedula ? ` · C.I. ${v(est.cedula)}` : ""}</p>
+        <a download href={`/panel/gestion/estudiantes/${id}/descargar`}
+          className="rounded-lg border-2 border-marca bg-white px-4 py-2 text-sm font-semibold text-marca hover:bg-marca hover:text-white">
+          ⬇ Descargar ficha en Word
+        </a>
+      </div>
       {!editor && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Solo Inspección, DECE y el administrador pueden modificar la ficha.</p>}
       <Mensajes ok={ok} error={error} />
 
