@@ -146,29 +146,33 @@ export function crearEncabezadoOficial(inst: DatosInstitucion): Header {
   const lugar = [inst.canton, inst.provincia].every(Boolean)
     ? `${inst.canton} – ${inst.provincia} - Ecuador`.toLocaleUpperCase("es-EC")
     : of.lugar ?? "";
-  const lineas = [
-    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "UNIDAD EDUCATIVA", bold: true, size: 22, color: color(inst) })] }),
-    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `“${nombreSinTipo(inst.nombre)}”`, bold: true, size: 26, color: color(inst) })] }),
+  // Bloque centrado entre el escudo del Gobierno (izquierda) y el Ministerio (derecha).
+  const linea = (texto: string, size: number, col: string, bold = true) =>
+    new TextRun({ text: texto, bold, size, color: col });
+  const parrafo = (runs: (TextRun | ImageRun)[], before = 0) => new Paragraph({
+    alignment: AlignmentType.CENTER, spacing: { before, after: 0, line: 240 },
+    indent: { left: 1170, right: 1170 }, children: runs,
+  });
+  // Logo de la institución en la esquina derecha, sobre "Ministerio de Educación, Deporte y Cultura".
+  const extra: ImageRun[] = [fondo];
+  if (inst.logo) {
+    const alto = 58, ancho = Math.round(alto * (inst.logo.proporcion ?? 1));
+    extra.push(new ImageRun({
+      type: inst.logo.tipo, data: inst.logo.datos, transformation: { width: ancho, height: alto },
+      floating: {
+        horizontalPosition: { relative: HorizontalPositionRelativeFrom.PAGE, offset: Math.round((676 - ancho / 2) * 9525) },
+        verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, offset: 50 * 9525 },
+        allowOverlap: true, wrap: { type: TextWrappingType.NONE },
+      },
+    }));
+  }
+  const hijos = [
+    parrafo([...extra, linea("UNIDAD EDUCATIVA", 17, color(inst))], 480),
+    parrafo([linea(`“${nombreSinTipo(inst.nombre)}”`, 22, color(inst))]),
   ];
-  if (inst.codigoAmie) lineas.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `AMIE ${inst.codigoAmie}`, bold: true, size: 18, color: MORADO })] }));
-  if (lugar) lineas.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: lugar, size: 16, color: MORADO })] }));
-
-  const celda = (hijos: Paragraph[], ancho: number) => new TableCell({
-    width: { size: ancho, type: WidthType.PERCENTAGE }, verticalAlign: VerticalAlign.CENTER, borders: SIN_BORDE, children: hijos,
-  });
-  const logo = inst.logo
-    ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [new ImageRun({ type: inst.logo.tipo, data: inst.logo.datos,
-        transformation: { width: Math.round(68 * (inst.logo.proporcion ?? 1)), height: 68 } })] })]
-    : [new Paragraph({ children: [] })];
-  return new Header({
-    children: [
-      new Paragraph({ spacing: { before: 1150 }, children: [fondo] }),
-      new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        rows: [new TableRow({ children: [celda(logo, 16), celda(lineas, 68), celda([new Paragraph({ children: [] })], 16)] })],
-      }),
-    ],
-  });
+  if (inst.codigoAmie) hijos.push(parrafo([linea(`AMIE ${inst.codigoAmie}`, 15, MORADO)]));
+  if (lugar) hijos.push(parrafo([linea(lugar, 13, MORADO, false)]));
+  return new Header({ children: hijos });
 }
 
 export function crearPieOficial(inst: DatosInstitucion): Footer {
@@ -198,7 +202,7 @@ export function documentoMembretado(inst: DatosInstitucion, contenido: ISectionO
         page: {
           size: { width: 11906, height: 16838 },
           margin: oficial
-            ? { top: 2950, bottom: 1950, left: 1701, right: 1701, header: 300, footer: 380 }
+            ? { top: 2550, bottom: 1950, left: 1701, right: 1701, header: 300, footer: 380 }
             : { top: 1700, bottom: 1300, left: 1400, right: 1400, header: 500, footer: 400 },
         },
       },
