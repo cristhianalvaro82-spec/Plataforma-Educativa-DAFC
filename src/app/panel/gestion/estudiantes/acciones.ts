@@ -48,10 +48,18 @@ function filaFamiliar(tipo: Tipo, d: Record<string, string>) {
   return fila;
 }
 
-/** Importa la nómina de un curso desde Excel: crea o actualiza estudiantes, familiares y matrícula. */
+/**
+ * Importa un Excel en un curso. Dos modos:
+ * - "reemplazar": el Excel es la nómina oficial del curso. Crea o actualiza a cada
+ *   estudiante y saca del curso a quienes no están en el Excel (su ficha se conserva).
+ * - "completar": solo completa datos (ficha, madre, padre, representante) de los
+ *   estudiantes que YA están en el curso; no agrega ni saca a nadie.
+ */
 export async function importarNomina(f: FormData) {
   const { supabase, inst } = await contextoGestion(EDITORES);
   const curso = texto(f, "curso");
+  const modo = texto(f, "modo") === "completar" ? "completar" : "reemplazar";
+  const seguro = texto(f, "seguro") === "1";
   const ruta = `${RUTA}?curso=${curso}`;
   if (!curso) volver(RUTA, "error", "Elige el curso.");
   let filas: string[][] = [];
@@ -60,16 +68,34 @@ export async function importarNomina(f: FormData) {
   } catch (e) {
     volver(ruta, "error", e instanceof Error ? e.message : "No se pudo leer el archivo.");
   }
-  if (!filas.length) volver(ruta, "error", "Elige el archivo Excel de la nómina.");
+  if (!filas.length) volver(ruta, "error", "Elige el archivo Excel.");
   const { registros } = interpretarNomina(filas);
   if (!registros.length) volver(ruta, "error", "No encontré estudiantes. Revisa que haya columnas Apellidos y Nombres (o Apellidos y nombres).");
 
+  const { data: cursoDato } = await supabase.from("cursos").select("grado, paralelo").eq("id", curso).maybeSingle();
+  const nombreCurso = cursoDato ? `${cursoDato.grado} "${cursoDato.paralelo}"` : "este curso";
   const { data: existentes, error: e0 } = await supabase.from("estudiantes").select("id, cedula, apellidos, nombres").eq("institucion_id", inst.id);
   if (e0) volver(ruta, "error", explicar(e0.message));
   const porCedula = new Map((existentes ?? []).filter((x) => x.cedula).map((x) => [x.cedula as string, x.id as string]));
   const porNombre = new Map((existentes ?? []).map((x) => [`${x.apellidos}|${x.nombres}`, x.id as string]));
+  const buscar = (fila: ReturnType<typeof filaEstudiante>) =>
+    (fila.cedula && porCedula.get(fila.cedula)) || porNombre.get(`${fila.apellidos}|${fila.nombres}`);
 
-  let nuevos = 0, actualizados = 0;
+  // Quiénes están hoy en el curso.
+  const { data: yaMatriculados } = await supabase.from("matriculas")
+    .select("estudiante_id, estudiantes(apellidos, nombres)").eq("curso_id", curso);
+  type M = { estudiante_id: string; estudiantes: { apellidos: string; nombres: string } | null };
+  const enCurso = new Map<string, string>();
+  for (const m of (yaMatriculados ?? []) as unknown as M[]) enCurso.set(m.estudiante_id, `${m.estudiantes?.apellidos} ${m.estudiantes?.nombres}`);
+
+  // ¿El Excel parece de otro curso? (ninguno de sus estudiantes está en este curso)
+  const coinciden = registros.filter((r) => { const id = buscar(filaEstudiante(r.estudiante)); return id && enCurso.has(id); }).length;
+  if (modo === "completar" && coinciden === 0)
+    volver(ruta, "error", `Ningún estudiante de ese Excel está en ${nombreCurso}, así que no hay datos que completar. Revisa que hayas elegido el curso correcto.`);
+  if (modo === "reemplazar" && enCurso.size > 0 && coinciden === 0 && !seguro)
+    volver(ruta, "error", `Ojo: ninguno de los ${registros.length} estudiantes de ese Excel está hoy en ${nombreCurso}. Si lo subes, los ${enCurso.size} actuales saldrían del curso. Si de verdad es la nómina de este curso, marca "Sí, estoy seguro" y súbelo otra vez.`);
+
+  let nuevos = 0, actualizados = 0, omitidos = 0;
   // Un error en un estudiante no detiene a los demás: se anota y se sigue.
   const fallidos: string[] = [];
   const ids: { id: string; apellidos: string; nombres: string }[] = [];
@@ -78,7 +104,8 @@ export async function importarNomina(f: FormData) {
     // Solo se envían los campos que vinieron en el Excel, para no borrar datos ya guardados.
     const datos = Object.fromEntries(Object.entries(fila).filter(([k, v]) =>
       v !== null || ["apellidos", "nombres"].includes(k))) as Record<string, unknown>;
-    const id = (fila.cedula && porCedula.get(fila.cedula)) || porNombre.get(`${fila.apellidos}|${fila.nombres}`);
+    const id = buscar(fila);
+    if (modo === "completar" && !(id && enCurso.has(id))) { omitidos++; continue; }
     let estudianteId = id;
     const quien = `${fila.apellidos} ${fila.nombres}`;
     if (id) {
@@ -103,23 +130,37 @@ export async function importarNomina(f: FormData) {
     }
   }
 
-  // Matrícula en el curso, con número de lista en orden alfabético (junto a los que ya estaban).
-  const { data: yaMatriculados } = await supabase.from("matriculas")
-    .select("estudiante_id, estudiantes(apellidos, nombres)").eq("curso_id", curso);
-  type M = { estudiante_id: string; estudiantes: { apellidos: string; nombres: string } | null };
-  const todos = new Map<string, string>();
-  for (const m of (yaMatriculados ?? []) as unknown as M[]) todos.set(m.estudiante_id, `${m.estudiantes?.apellidos} ${m.estudiantes?.nombres}`);
-  for (const x of ids) todos.set(x.id, `${x.apellidos} ${x.nombres}`);
-  const orden = [...todos.entries()].sort((a, b) => a[1].localeCompare(b[1], "es"));
-  const { error: eM } = await supabase.from("matriculas").upsert(
-    orden.map(([estudiante_id], i) => ({ estudiante_id, curso_id: curso, numero_lista: i + 1 })),
-    { onConflict: "estudiante_id,curso_id" });
-  if (eM) volver(ruta, "error", explicar(eM.message));
+  const partes: string[] = [];
+  if (modo === "reemplazar") {
+    // Salen del curso los que no están en el Excel (su ficha se conserva).
+    const quedan = new Set(ids.map((x) => x.id));
+    const salen = [...enCurso.keys()].filter((x) => !quedan.has(x));
+    // Si algún estudiante del Excel falló, no se saca a nadie, para no perder a quien sí debía estar.
+    if (salen.length && !fallidos.length) {
+      const { error } = await supabase.from("matriculas").delete().eq("curso_id", curso).in("estudiante_id", salen);
+      if (error) volver(ruta, "error", explicar(error.message));
+      partes.push(`Salieron del curso ${salen.length} que no estaban en el Excel (sus fichas siguen guardadas): ${salen.map((x) => enCurso.get(x)).join(", ")}.`);
+    }
+    // Número de lista en orden alfabético.
+    const orden = ids.map((x): [string, string] => [x.id, `${x.apellidos} ${x.nombres}`])
+      .concat(fallidos.length ? [...enCurso.entries()].filter(([x]) => !quedan.has(x)) : [])
+      .sort((a, b) => a[1].localeCompare(b[1], "es"))
+      .filter(([x], i, todos) => todos.findIndex(([y]) => y === x) === i); // sin repetidos
+    const { error: eM } = await supabase.from("matriculas").upsert(
+      orden.map(([estudiante_id], i) => ({ estudiante_id, curso_id: curso, numero_lista: i + 1 })),
+      { onConflict: "estudiante_id,curso_id" });
+    if (eM) volver(ruta, "error", explicar(eM.message));
+  } else if (omitidos) {
+    partes.push(`${omitidos} del Excel no están en ${nombreCurso} y no se tocaron.`);
+  }
 
   revalidatePath(RUTA);
-  const resumen = `Nómina importada: ${nuevos} estudiantes nuevos y ${actualizados} actualizados.`;
-  if (fallidos.length) volver(ruta, "error", `${resumen} Revisa ${fallidos.length === 1 ? "este caso" : `estos ${fallidos.length} casos`}: ${fallidos.join("; ")}.`);
-  volver(ruta, "ok", resumen);
+  const resumen = modo === "reemplazar"
+    ? `Nómina de ${nombreCurso} actualizada: ${nuevos} nuevos y ${actualizados} que ya estaban.`
+    : `Datos completados de ${actualizados} estudiantes de ${nombreCurso}.`;
+  const texto_ = [resumen, ...partes].join(" ");
+  if (fallidos.length) volver(ruta, "error", `${texto_} Revisa ${fallidos.length === 1 ? "este caso" : `estos ${fallidos.length} casos`}: ${fallidos.join("; ")}.`);
+  volver(ruta, "ok", texto_);
 }
 
 /** Agrega un estudiante a mano y abre su ficha. */

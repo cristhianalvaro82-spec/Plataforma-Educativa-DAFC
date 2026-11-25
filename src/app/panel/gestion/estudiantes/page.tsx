@@ -138,12 +138,32 @@ export default async function EstudiantesPage({ searchParams }: { searchParams: 
                 <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-600">
                   <li>Descarga la <a download href="/panel/gestion/estudiantes/plantilla" className="font-medium text-marca underline">plantilla vacía</a> (o una <a download href="/panel/gestion/estudiantes/plantilla?ejemplo=1" className="font-medium text-marca underline">nómina de ejemplo ficticia</a> para practicar).</li>
                   <li>Llénala con una fila por estudiante. También sirve la <b>nómina que descarga el Ministerio</b> (No., Cédula, Nombres completos, Cuenta) o el Excel de la ficha de Sistema Orozco.</li>
-                  <li>Súbela aquí. Si un estudiante ya existe (misma cédula), se actualiza; no se duplica. Así puedes subir primero la nómina del Ministerio y luego el Excel de fichas de Orozco (.xls) para completar madre, padre y representante.</li>
+                  <li>Súbela aquí. Primero la <b>nómina del Ministerio</b>; después, si quieres, el Excel de fichas de Orozco (.xls) para completar madre, padre y representante. Nadie se duplica: se reconoce por la cédula.</li>
                 </ol>
-                <form action={importarNomina} className="mt-4 flex flex-wrap items-center gap-3">
+                <form action={importarNomina} className="mt-4 grid gap-3">
                   <input type="hidden" name="curso" value={actual.id} />
-                  <input type="file" name="archivo" accept=".xlsx,.xls,.csv" required className={archivo} />
-                  <button className={botonPrincipal}>Importar a {actual.grado} &ldquo;{actual.paralelo}&rdquo;</button>
+                  <fieldset className="grid gap-2 sm:grid-cols-2">
+                    <legend className="mb-1 text-sm font-semibold text-slate-800">¿Qué Excel vas a subir?</legend>
+                    <label className="flex cursor-pointer gap-2 rounded-lg border-2 border-slate-200 p-3 text-sm hover:border-marca has-[:checked]:border-marca has-[:checked]:bg-blue-50">
+                      <input type="radio" name="modo" value="reemplazar" defaultChecked className="mt-1" />
+                      <span><b>La nómina del curso</b> (la del Ministerio)<br />
+                        <span className="text-xs text-slate-600">El curso queda igual al Excel. Quienes no estén en el Excel salen del curso; su ficha se guarda.</span></span>
+                    </label>
+                    <label className="flex cursor-pointer gap-2 rounded-lg border-2 border-slate-200 p-3 text-sm hover:border-marca has-[:checked]:border-marca has-[:checked]:bg-blue-50">
+                      <input type="radio" name="modo" value="completar" className="mt-1" />
+                      <span><b>Datos para completar fichas</b> (el de Orozco)<br />
+                        <span className="text-xs text-slate-600">Solo completa datos de quienes ya están en el curso. No agrega ni saca a nadie.</span></span>
+                    </label>
+                  </fieldset>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <input type="file" name="archivo" accept=".xlsx,.xls,.csv" required className={archivo} />
+                    <button className={botonPrincipal}>Subir a {actual.grado} &ldquo;{actual.paralelo}&rdquo;</button>
+                  </div>
+                  {error?.startsWith("Ojo:") && (
+                    <label className="flex items-center gap-2 text-sm text-red-700">
+                      <input type="checkbox" name="seguro" value="1" /> Sí, estoy seguro: este Excel es la nómina de este curso.
+                    </label>
+                  )}
                 </form>
 
                 <details className="mt-5">
