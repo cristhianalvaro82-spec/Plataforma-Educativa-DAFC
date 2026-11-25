@@ -161,7 +161,7 @@ export function crearEncabezadoOficial(inst: DatosInstitucion): Header {
       type: inst.logo.tipo, data: inst.logo.datos, transformation: { width: ancho, height: alto },
       floating: {
         horizontalPosition: { relative: HorizontalPositionRelativeFrom.PAGE, offset: Math.round((676 - ancho / 2) * 9525) },
-        verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, offset: 50 * 9525 },
+        verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, offset: 24 * 9525 },
         allowOverlap: true, wrap: { type: TextWrappingType.NONE },
       },
     }));
